@@ -1,2 +1,2 @@
 # Gobang
-A multiplayer Gobang game.
+A multiplayer Gobang game used WebSocket.
