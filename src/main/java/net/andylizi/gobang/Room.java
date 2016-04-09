@@ -19,7 +19,6 @@ package net.andylizi.gobang;
 import java.beans.Beans;
 import java.io.IOException;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.StringTokenizer;
 import javax.websocket.MessageHandler;
@@ -104,7 +103,12 @@ public class Room extends Beans {
             sendToPlayer1("start:black");
             sendToPlayer2("start:white");
         }
-        Arrays.fill(data, new int[15]);
+        for(int x = 0;x < data.length;x++){
+            for(int y = 0;y < data[0].length;y++){
+                data[x][y] = EMPTY;
+                update(x, y);
+            }
+        }
         playing = true;
     }
 
