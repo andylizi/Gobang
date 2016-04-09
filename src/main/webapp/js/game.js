@@ -17,7 +17,7 @@
 var isWhite = false;
 var started = false;
 var turn = false;
-var socket = new Socket();
+var socket = new Socket();;
 function onConnected(){
 }
 function onMessage(evt){
@@ -48,6 +48,8 @@ function onMessage(evt){
         $("table").toggleClass("turn");
     }else if(args[0] == "gameover"){
         alert("Game Over!\r\n"+args[1]);
+    }else{
+        alert(evt.data);
     }
 }
 function onError(err){
@@ -56,10 +58,7 @@ function onError(err){
 function onClose(){
     alert("close");
 }
-var socketurl = location.href.replace(new RegExp("^\w+://"),"ws://").replace("game.jsp","socket");
-if(create){
-    socket += "?"+roomId;
-}
+var socketurl = location.href.replace(/^\w+:/,"ws:").replace("game.jsp","socket").replace("?create","");
 if(!socket){
     location.href = "index.jsp";
 }else{
