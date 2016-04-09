@@ -25,10 +25,16 @@
                         location.href = "game.jsp?create";
                     });
                     $("#btn_join").one("click", showJoin);
+                    if(location.hash == "#join"){
+                        showJoin();
+                    }
                 });
                 function showJoin() {
+                    location.hash = "#join";
                     $("#btn_create").css("visibility", "hidden");
+                    $("#txt_join").css("visibility", "visible");
                     $("#btn_back").fadeIn("slow").one("click", function () {
+                        location.hash = "";
                         $(this).fadeOut("normal", function () {
                             setTimeout(function () {
                                 setTimeout(function () {
@@ -38,14 +44,16 @@
                                     width: "0px"
                                 }, "slow").fadeOut("fast", "swing", function () {
                                     $(this).css("display", "inline").css("visibility", "hidden");
-                                    $("#btn_join").one("click", showJoin);
+                                    $("#btn_join").one("click", showJoin).animate({
+                                        marginLeft: "20px"
+                                    },"fast");;
                                 });
                             }, 200);
                         });
                     });
                     this.disabled = true;
                     setTimeout(function () {
-                        $("#txt_join").css("visibility", "visible").animate({
+                        $("#txt_join").animate({
                             width: "150px"
                         }, "slow", "swing", function () {
                             this.focus();
@@ -53,7 +61,7 @@
                             $("#btn_join").attr("disabled", false);
                         });
                     }, 200);
-                    $(this).click(function () {
+                    $("#btn_join").css("margin-left","10px").on("click",function () {
                         var val = $("#txt_join").val();
                         if (!val) {
                             $("#txt_join")[0].focus();
