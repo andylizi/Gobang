@@ -13,12 +13,6 @@
             response.sendRedirect("index.jsp");
             return;
         }
-        if (room.isPlaying()) {
-%>
-Has been start! <a href="index.jsp">Back</a>
-<%
-            return;
-        }
         roomId = room.getRoomId();
     } else {
         response.sendRedirect("index.jsp");

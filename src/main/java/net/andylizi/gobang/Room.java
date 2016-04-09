@@ -147,13 +147,13 @@ public class Room extends Beans {
         System.out.println("x=" + x + ",y=" + y + ",d=" + d);
 
         //↑
-        if ((getTimes(x, y, 0, 1, d) + getTimes(x, y, 0, -1, d)) >= 5 // transverse
+        if ((getTimes(x, y, 0, 1, d) + getTimes(x, y, 0, -1, d)) >= 4 // transverse
                 || //←
-                (getTimes(x, y, 1, 0, d) + getTimes(x, y, -1, 0, d)) >= 5 // longitudinal
+                (getTimes(x, y, 1, 0, d) + getTimes(x, y, -1, 0, d)) >= 4 // longitudinal
                 || //↘
-                (getTimes(x, y, 1, 1, d) + getTimes(x, y, -1, -1, d)) >= 5 // oblique
+                (getTimes(x, y, 1, 1, d) + getTimes(x, y, -1, -1, d)) >= 4 // oblique
                 || //↙
-                (getTimes(x, y, 1, -1, d) + getTimes(x, y, -1, 1, d)) >= 5) //  oblique
+                (getTimes(x, y, 1, -1, d) + getTimes(x, y, -1, 1, d)) >= 4) //  oblique
         {
             gameOver((d == WHITE ? "White" : "Back") + " win!",true);
         }
@@ -167,7 +167,7 @@ public class Room extends Beans {
         if (dx == 0 && dy == 0) {
             return 0;
         }
-        int times = 1;
+        int times = 0;
         for (int k = 1; k <= 5; k++) {
             int nx = cx + (dx * k);
             int ny = cy + (dy * k);
