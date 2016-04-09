@@ -56,14 +56,14 @@ function onError(err){
 function onClose(){
     alert("close");
 }
+var socketurl = location.href.replace(new RegExp("^\w+://"),"ws://").replace("game.jsp","socket");
+if(create){
+    socket += "?"+roomId;
+}
 if(!socket){
     location.href = "index.jsp";
 }else{
-    if(create){
-        socket.connect("ws://localhost:8084/Gobang/socket",onConnected,onMessage,onError,onClose);
-    }else{
-        socket.connect("ws://localhost:8084/Gobang/socket?"+roomId,onConnected,onMessage,onError,onClose);
-    }
+    socket.connect(socketurl,onConnected,onMessage,onError,onClose);
 }
 function setColor(x,y,c){
     var e = $("#row_"+x+"_"+y);
