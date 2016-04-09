@@ -8,6 +8,6 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>DefaultServlet</servlet-name>
-        <url-pattern>/</url-pattern>
+        <url-pattern>/default</url-pattern>
     </servlet-mapping>
 </web-app>
