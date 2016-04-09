@@ -1,0 +1,76 @@
+/*
+Copyright (C) 2016 andylizi
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+table,tr,td{
+    border: 0px none;
+}
+td{
+    position: relative;
+    width: 50px;
+    height: 50px;
+    background: url('../image/cross.svg') no-repeat 0 0;
+    background-size: cover;
+    text-align: center;
+    vertical-align: middle;
+}
+tr.border-top td{
+    background-image: url('../image/border-top.svg');
+}
+tr.border-bottom td{
+    background-image: url('../image/border-bottom.svg');
+}
+td.border-left{
+    background-image: url('../image/border-left.svg');
+}
+td.border-right{
+    background-image: url('../image/border-right.svg');
+}
+tr.border-top td.border-left{
+    background-image: url('../image/coner-top-left.svg');
+}
+tr.border-top td.border-right{
+    background-image: url('../image/coner-top-right.svg');
+}
+tr.border-bottom td.border-left{
+    background-image: url('../image/coner-bottom-left.svg');
+}
+tr.border-bottom td.border-right{
+    background-image: url('../image/coner-bottom-right.svg');
+}
+table.turn td{
+    cursor: pointer;
+}
+td .chessiece{
+    cursor: default;
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    left: 8px;
+    top: 8px;
+    border: none;
+    -moz-border-radius: 32px;
+    -webkit-border-radius: 32px;
+    border-radius: 32px;
+    -moz-box-shadow: 0.5px 0.5px 1px 0px #424242 ;
+    -webkit-box-shadow: 0.5px 0.5px 1px 0px #424242 ;
+    box-shadow: 0.5px 0.5px 1px 0px #424242 ;
+}
+td .chessiece.black{
+    background-image: url('../image/black.png');
+}
+td .chessiece.white{
+    background-image: url('../image/white.png');
+}
