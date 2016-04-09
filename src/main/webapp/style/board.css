@@ -50,7 +50,7 @@ tr.border-bottom td.border-left{
 tr.border-bottom td.border-right{
     background-image: url('../image/coner-bottom-right.svg');
 }
-table.turn td{
+.turn td{
     cursor: pointer;
 }
 td .chessiece{

@@ -16,6 +16,7 @@
  */
 var isWhite = false;
 var started = false;
+var spectator = false;
 var turn = false;
 var socket = new Socket();;
 function onConnected(){
@@ -28,7 +29,8 @@ function onMessage(evt){
     }else if(args[0] == "start"){
         started = true;
         isWhite = args[1] == "white";
-        alert("You are "+(isWhite ? "white" : "black"))
+        spectator = args[1] == "spectator";
+        alert("You are "+args[1]);
         turn = isWhite;
         if(turn){
             $("table").addClass("turn");
@@ -44,10 +46,13 @@ function onMessage(evt){
     }else if(args[0] == "update"){
         setColor(args[1],args[2],args[3]);
     }else if(args[0] == "turn"){
+        if(spectator) return;
         turn = (isWhite ? args[1] == "WHITE" : args[1] == "BLACK");
         $("table").toggleClass("turn");
     }else if(args[0] == "gameover"){
         alert("Game Over!\r\n"+args[1]);
+    }else if(args[0] == "clear"){
+        $(".chessiece").remove();
     }else{
         alert(evt.data);
     }
@@ -67,7 +72,7 @@ if(!socket){
 function setColor(x,y,c){
     var e = $("#row_"+x+"_"+y);
     if(c == 0){ //EMPTY
-        e.html("");
+        e.html("<span class='chessiece black'>&nbsp;</span>");
     }else if(c == 1){  //BLACK
         e.html("<span class='chessiece black'>&nbsp;</span>")
     }else if(c == 2){  //WHITE

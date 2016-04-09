@@ -19,7 +19,9 @@ package net.andylizi.gobang;
 import java.beans.Beans;
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.StringTokenizer;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
@@ -38,6 +40,7 @@ public class Room extends Beans {
     private final RemoteEndpoint.Basic remote1;
     private Session player2;
     private RemoteEndpoint.Basic remote2;
+    private final Set<Session> spectators = new HashSet<>();
     private boolean playing = false;
     private final boolean player1IsWhite;
 
@@ -84,6 +87,15 @@ public class Room extends Beans {
     }
 
     public void join(Session player2) {
+        if(playing && this.player2 != null && this.player2.isOpen()){
+            try {
+                player2.getBasicRemote().sendText("start:spectator");
+                spectators.add(player2);
+                updateAllMap(-1, player2.getBasicRemote());
+            } catch (IOException ex) {
+            }
+            return;
+        }
         this.player2 = player2;
         this.remote2 = player2.getBasicRemote();
         if (canStart()) {
@@ -103,12 +115,8 @@ public class Room extends Beans {
             sendToPlayer1("start:black");
             sendToPlayer2("start:white");
         }
-        for(int x = 0;x < data.length;x++){
-            for(int y = 0;y < data[0].length;y++){
-                data[x][y] = EMPTY;
-                update(x, y);
-            }
-        }
+        updateAllMap(EMPTY,remote1,remote2);
+        broadcast("clear");
         playing = true;
     }
 
@@ -118,9 +126,13 @@ public class Room extends Beans {
 
     public void onQuit(Session session) {
         if (session.equals(player1)) {
-            gameOver((player1IsWhite ? "White" : "Black") + " left the game");
+            if (player2.isOpen()) {
+                gameOver((player1IsWhite ? "White" : "Black") + " left the game",false);
+            }
         } else if (session.equals(player2)) {
-            gameOver((!player1IsWhite ? "White" : "Black") + " left the game");
+            if (player1.isOpen()) {
+                gameOver((!player1IsWhite ? "White" : "Black") + " left the game",false);
+            }
         }
     }
 
@@ -133,36 +145,43 @@ public class Room extends Beans {
             return;
         }
         System.out.println("x=" + x + ",y=" + y + ",d=" + d);
-        i:
-        for (int i = -1; i <= 1; i++) {
-            j:
-            for (int j = -1; j <= 1; j++) {
-                if (i == 0 && j == 0) {
-                    continue;
-                }
-                int k = 1;
-                k:
-                for (; k <= 5; k++) {
-                    int nx = x + (i * k);
-                    int ny = y + (j * k);
-                    System.out.println("k=" + k + ",i=" + i + ",j=" + j + ",nx=" + nx + ",ny=" + ny);
-                    if (nx < 0 || ny < 0 || nx >= data.length || ny >= data[0].length) {
-                        break;
-                    }
-                    int nd = data[nx][ny];
-                    System.out.println("data=" + nd);
-                    if (nd == EMPTY || d != nd) {
-                        break;
-                    }
-                }
-                System.out.println("k=" + k);
-                if (k >= 5) {
-                    gameOver((d == WHITE ? "White" : "Black") + " win!");
-                    return;
-                }
-            }
+
+        //↑
+        if ((getTimes(x, y, 0, 1, d) + getTimes(x, y, 0, -1, d)) >= 5 // transverse
+                || //←
+                (getTimes(x, y, 1, 0, d) + getTimes(x, y, -1, 0, d)) >= 5 // longitudinal
+                || //↘
+                (getTimes(x, y, 1, 1, d) + getTimes(x, y, -1, -1, d)) >= 5 // oblique
+                || //↙
+                (getTimes(x, y, 1, -1, d) + getTimes(x, y, -1, 1, d)) >= 5) //  oblique
+        {
+            gameOver((d == WHITE ? "White" : "Back") + " win!",true);
         }
         System.out.println("================");
+    }
+
+    public int getTimes(int cx, int cy, int dx, int dy, int c) {
+        if (c == EMPTY) {
+            return 0;
+        }
+        if (dx == 0 && dy == 0) {
+            return 0;
+        }
+        int times = 1;
+        for (int k = 1; k <= 5; k++) {
+            int nx = cx + (dx * k);
+            int ny = cy + (dy * k);
+            if (nx < 0 || ny < 0 || nx >= data.length || ny >= data[0].length) {
+                continue;
+            }
+            int nc = data[nx][ny];
+            if (nc == EMPTY || c != nc) {
+                break;
+            }
+            times++;
+        }
+        System.out.println("dx="+dx+",dy="+dy+",=times"+times);
+        return times;
     }
 
     private class Player1Handler implements MessageHandler.Whole<String> {
@@ -251,9 +270,9 @@ public class Room extends Beans {
                     }
                     Room.this.data[x][y] = Player2Color();
                     update(x, y);
-                    checkWin(x, y, data[x][y]);
                     turnToBlack = !turnToBlack;
                     broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
+                    checkWin(x, y, data[x][y]);
                 } catch (NumberFormatException ex) {
                     return;
                 }
@@ -264,6 +283,14 @@ public class Room extends Beans {
     public void broadcast(String message) {
         sendToPlayer1(message);
         sendToPlayer2(message);
+        for(Session session:spectators){
+            if(session != null && session.isOpen()){
+                try {
+                    session.getBasicRemote().sendText(message);
+                } catch (IOException ex) {
+                }
+            }
+        }
     }
 
     public void sendToPlayer1(String message) {
@@ -271,7 +298,6 @@ public class Room extends Beans {
             try {
                 remote1.sendText(message);
             } catch (IOException ex) {
-                ex.printStackTrace();
             }
         }
     }
@@ -281,19 +307,18 @@ public class Room extends Beans {
             try {
                 remote2.sendText(message);
             } catch (IOException ex) {
-                ex.printStackTrace();
             }
         }
     }
 
-    public synchronized void gameOver(String message) {
+    public synchronized void gameOver(String message,boolean canRestart) {
         if (!playing) {
             return;
         }
         playing = false;
         broadcast("gameover:" + message);
-        System.out.println("gameover" + message);
-        if (canStart()) {
+        System.out.println("gameover " + message);
+        if (canRestart && canStart()) {
             start();
         } else {
             closeAll();
@@ -316,6 +341,15 @@ public class Room extends Beans {
             } catch (IOException ex) {
             }
         }
+        for(Session session:spectators){
+            if(session != null && session.isOpen()){
+                try {
+                    session.close();
+                } catch (IOException ex) {
+                }
+            }
+        }
+        spectators.clear();
     }
 
     public void update(int x, int y) {
@@ -332,5 +366,22 @@ public class Room extends Beans {
 
     public void update(int x, int y, int data) {
         broadcast("update:" + x + ":" + y + ":" + data);
+    }
+    
+    public void updateAllMap(int nc,RemoteEndpoint.Basic... remotes){
+        for (int x = 0; x < data.length; x++) {
+            for (int y = 0; y < data[0].length; y++) {
+                if(nc != -1)
+                    data[x][y] = nc;
+                String msg = "update:" + x + ":" + y + ":" + nc;
+                System.out.println(msg);
+                for(RemoteEndpoint.Basic remote:remotes){
+                    try {
+                        remote.sendText(msg);
+                    } catch (IOException ex) {
+                    }
+                }
+            }
+        }
     }
 }
