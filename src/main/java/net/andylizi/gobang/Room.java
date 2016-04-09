@@ -19,6 +19,7 @@ package net.andylizi.gobang;
 import java.beans.Beans;
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.StringTokenizer;
 import javax.websocket.MessageHandler;
@@ -40,7 +41,7 @@ public class Room extends Beans {
     private RemoteEndpoint.Basic remote2;
     private boolean playing = false;
     private final boolean player1IsWhite;
-    
+
     private boolean turnToBlack = false;
 
     private int[][] data = new int[15][15];
@@ -56,7 +57,7 @@ public class Room extends Beans {
         owner.addMessageHandler(room.new Player1Handler());
         GameStorge.rooms.put(room.roomId, room);
         try {
-            owner.getBasicRemote().sendText("join:"+room.getRoomId());
+            owner.getBasicRemote().sendText("join:" + room.getRoomId());
         } catch (IOException ex) {
             throw new IllegalArgumentException(ex);
         }
@@ -68,7 +69,7 @@ public class Room extends Beans {
         this.player1 = player1;
         this.remote1 = player1.getBasicRemote();
         player1IsWhite = random.nextBoolean();
-        
+
     }
 
     public String getRoomId() {
@@ -86,7 +87,9 @@ public class Room extends Beans {
     public void join(Session player2) {
         this.player2 = player2;
         this.remote2 = player2.getBasicRemote();
-        if(canStart()) start();
+        if (canStart()) {
+            start();
+        }
         player2.addMessageHandler(this.new Player2Handler());
     }
 
@@ -101,6 +104,7 @@ public class Room extends Beans {
             sendToPlayer1("start:black");
             sendToPlayer2("start:white");
         }
+        Arrays.fill(data, new int[15]);
         playing = true;
     }
 
@@ -109,9 +113,9 @@ public class Room extends Beans {
     }
 
     public void onQuit(Session session) {
-        if(session.equals(player1)){
+        if (session.equals(player1)) {
             gameOver((player1IsWhite ? "White" : "Black") + " left the game");
-        }else if(session.equals(player2)){
+        } else if (session.equals(player2)) {
             gameOver((!player1IsWhite ? "White" : "Black") + " left the game");
         }
     }
@@ -119,30 +123,37 @@ public class Room extends Beans {
     public boolean isPlaying() {
         return playing;
     }
-    
-    public void checkWin(int x,int y,int d){
-        if(d == EMPTY) return;
-        System.out.println("x="+x+",y="+y+",d="+d);
-        i:for(int i = -1; i <= 1;i++){
-            j:for(int j = -1; j <= 1;j++){
-                if(i == 0 && j == 0) continue;
+
+    public void checkWin(int x, int y, int d) {
+        if (d == EMPTY) {
+            return;
+        }
+        System.out.println("x=" + x + ",y=" + y + ",d=" + d);
+        i:
+        for (int i = -1; i <= 1; i++) {
+            j:
+            for (int j = -1; j <= 1; j++) {
+                if (i == 0 && j == 0) {
+                    continue;
+                }
                 int k = 1;
-                k:for(;k <= 5;k++){
-                    int nx = x+(i * k);
-                    int ny = y+(j * k);
-                    System.out.println("k="+k+",i="+i+",j="+j+",nx="+nx+",ny="+ny);
-                    if(nx < 0 || ny < 0 || nx >= data.length || ny >= data[0].length){
+                k:
+                for (; k <= 5; k++) {
+                    int nx = x + (i * k);
+                    int ny = y + (j * k);
+                    System.out.println("k=" + k + ",i=" + i + ",j=" + j + ",nx=" + nx + ",ny=" + ny);
+                    if (nx < 0 || ny < 0 || nx >= data.length || ny >= data[0].length) {
                         break;
                     }
                     int nd = data[nx][ny];
-                    System.out.println("data="+nd);
-                    if(nd == EMPTY || d != nd){
+                    System.out.println("data=" + nd);
+                    if (nd == EMPTY || d != nd) {
                         break;
                     }
                 }
-                System.out.println("k="+k);
-                if(k >= 5){
-                    gameOver((d == WHITE ? "White" : "Black") +" win!");
+                System.out.println("k=" + k);
+                if (k >= 5) {
+                    gameOver((d == WHITE ? "White" : "Black") + " win!");
                     return;
                 }
             }
@@ -155,9 +166,9 @@ public class Room extends Beans {
         @OnMessage
         @Override
         public void onMessage(String message) {
-            StringTokenizer tokenizer = new StringTokenizer(message,":");
+            StringTokenizer tokenizer = new StringTokenizer(message, ":");
             String[] args = new String[tokenizer.countTokens()];
-            if(args.length == 0){
+            if (args.length == 0) {
                 System.out.println("error = 0");
                 return;
             }
@@ -170,11 +181,11 @@ public class Room extends Beans {
                 try {
                     int x = Integer.parseInt(args[1]);
                     int y = Integer.parseInt(args[2]);
-                    if(Player1IsWhite() && turnToBlack){
+                    if (Player1IsWhite() && turnToBlack) {
                         updateTo1(x, y);
                         return;
                     }
-                    if(data[x][y] != EMPTY){
+                    if (data[x][y] != EMPTY) {
                         updateTo1(x, y);
                         return;
                     }
@@ -182,36 +193,38 @@ public class Room extends Beans {
                     update(x, y);
                     checkWin(x, y, data[x][y]);
                     turnToBlack = !turnToBlack;
-                    broadcast("turn:"+(turnToBlack ? "BLACK" : "WHITE"));
-                }catch(NumberFormatException ex){
+                    broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
+                } catch (NumberFormatException ex) {
                     return;
                 }
             }
         }
     }
-    
-    public boolean Player1IsWhite(){
+
+    public boolean Player1IsWhite() {
         return player1IsWhite;
     }
-    
-    public boolean Player2IsWhite(){
+
+    public boolean Player2IsWhite() {
         return !player1IsWhite;
     }
-    
-    public int Player1Color(){
+
+    public int Player1Color() {
         return Player1IsWhite() ? WHITE : BLACK;
     }
-    public int Player2Color(){
+
+    public int Player2Color() {
         return Player2IsWhite() ? WHITE : BLACK;
     }
 
     private class Player2Handler implements MessageHandler.Whole<String> {
+
         @OnMessage
         @Override
         public void onMessage(String message) {
-            StringTokenizer tokenizer = new StringTokenizer(message,":");
+            StringTokenizer tokenizer = new StringTokenizer(message, ":");
             String[] args = new String[tokenizer.countTokens()];
-            if(args.length == 0){
+            if (args.length == 0) {
                 System.out.println("error = 0");
                 return;
             }
@@ -224,11 +237,11 @@ public class Room extends Beans {
                 try {
                     int x = Integer.parseInt(args[1]);
                     int y = Integer.parseInt(args[2]);
-                    if(Player2IsWhite() && turnToBlack){
+                    if (Player2IsWhite() && turnToBlack) {
                         updateTo1(x, y);
                         return;
                     }
-                    if(data[x][y] != EMPTY){
+                    if (data[x][y] != EMPTY) {
                         updateTo1(x, y);
                         return;
                     }
@@ -236,8 +249,8 @@ public class Room extends Beans {
                     update(x, y);
                     checkWin(x, y, data[x][y]);
                     turnToBlack = !turnToBlack;
-                    broadcast("turn:"+(turnToBlack ? "BLACK" : "WHITE"));
-                }catch(NumberFormatException ex){
+                    broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
+                } catch (NumberFormatException ex) {
                     return;
                 }
             }
@@ -268,31 +281,25 @@ public class Room extends Beans {
             }
         }
     }
-    
-    public synchronized void gameOver(String message){
-        if(!playing) return;
+
+    public synchronized void gameOver(String message) {
+        if (!playing) {
+            return;
+        }
         playing = false;
-        message = "gameover:"+message;
-        if (remote1 != null && player1 != null && player1.isOpen()) {
-            try {
-                remote1.sendText(message,true);
-            } catch (IOException ex) {
-            }
+        broadcast("gameover:" + message);
+        System.out.println("gameover" + message);
+        if (canStart()) {
+            start();
+        } else {
+            closeAll();
+            player2 = null;
+            remote2 = null;
+            GameStorge.rooms.remove(roomId);
         }
-        if (remote2 != null && player2 != null && player2.isOpen()) {
-            try {
-                remote2.sendText(message,true);
-            } catch (IOException ex) {
-            }
-        }
-        closeAll();
-        player2 = null;
-        remote2 = null;
-        System.out.println("gameover"+message);
-        GameStorge.rooms.remove(roomId);
     }
-    
-    public void closeAll(){
+
+    public void closeAll() {
         if (remote1 != null && player1 != null && player1.isOpen()) {
             try {
                 player1.close();
@@ -307,18 +314,18 @@ public class Room extends Beans {
         }
     }
 
-    public void update(int x,int y) {
+    public void update(int x, int y) {
         update(x, y, data[x][y]);
     }
-    
-    public void updateTo1(int x,int y) {
+
+    public void updateTo1(int x, int y) {
         sendToPlayer1("update:" + x + ":" + y + ":" + data[x][y]);
     }
-    
-    public void updateTo2(int x,int y) {
+
+    public void updateTo2(int x, int y) {
         sendToPlayer2("update:" + x + ":" + y + ":" + data[x][y]);
     }
-    
+
     public void update(int x, int y, int data) {
         broadcast("update:" + x + ":" + y + ":" + data);
     }
