@@ -30,6 +30,6 @@ public abstract class GameStorage {
             public void run() {
                 Room.clean();
             }
-        }, 1000, TimeUnit.SECONDS.toMillis(20));
+        }, 1000, TimeUnit.SECONDS.toMillis(30));
     }
 }

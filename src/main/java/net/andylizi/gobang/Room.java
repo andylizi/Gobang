@@ -34,7 +34,6 @@ import javax.websocket.RemoteEndpoint;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 import javax.websocket.Session;
-import org.apache.tomcat.websocket.WsRemoteEndpointImplBase;
 
 public class Room extends Beans {
 
@@ -87,7 +86,7 @@ public class Room extends Beans {
     public synchronized static void clean() {
         Set<String> removeList = new HashSet<>(0);
         for (Room r : GameStorage.rooms.values()) {
-            if (r.isGarbage || (!checkOpen(r.player1) && !checkOpen(r.player2))) {
+            if (r.isGarbage) {
                 removeList.add(r.getRoomId());
             }
         }
@@ -97,22 +96,22 @@ public class Room extends Beans {
 
     private static Field REMOTE_ENDPOINT_FIELD;
     private static Field ENDPOINT_CLOESED_FIELD;
-    private static final Map<Session, WsRemoteEndpointImplBase> REMOTE_CACHE = new WeakHashMap<>(2);
+    private static final Map<Session, Object> REMOTE_CACHE = new WeakHashMap<>(2);
 
     public static boolean checkOpen(Session session) {
         if(session == null || !session.isOpen()) return false;
         try {
-            WsRemoteEndpointImplBase remote = REMOTE_CACHE.get(session);
+            Object remote = REMOTE_CACHE.get(session);
             if (remote == null) {
                 if (REMOTE_ENDPOINT_FIELD == null) {
                     REMOTE_ENDPOINT_FIELD = session.getClass().getDeclaredField("wsRemoteEndpoint");
                     REMOTE_ENDPOINT_FIELD.setAccessible(true);
                 }
-                remote = (WsRemoteEndpointImplBase) REMOTE_ENDPOINT_FIELD.get(session);
+                remote = REMOTE_ENDPOINT_FIELD.get(session);
                 REMOTE_CACHE.put(session, remote);
             }
             if (ENDPOINT_CLOESED_FIELD == null) {
-                ENDPOINT_CLOESED_FIELD = WsRemoteEndpointImplBase.class.getDeclaredField("closed");
+                ENDPOINT_CLOESED_FIELD = remote.getClass().getSuperclass().getDeclaredField("closed");
                 ENDPOINT_CLOESED_FIELD.setAccessible(true);
             }
             return !ENDPOINT_CLOESED_FIELD.getBoolean(remote);
