@@ -41,11 +41,6 @@ public class Room extends Beans {
     private static final int BLACK = 1;
     private static final int WHITE = 2;
     private static final Random random = new SecureRandom();
-    private static final SendHandler EMPTY_HANDLER = new SendHandler() {
-        @Override
-        public void onResult(SendResult result) {
-        }
-    };
     private static final CloseReason NORMAL_CLOSE = new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "socketclose");
 
     public boolean isGarbage = false;
@@ -88,6 +83,7 @@ public class Room extends Beans {
         for (Room r : GameStorage.rooms.values()) {
             if (r.isGarbage) {
                 removeList.add(r.getRoomId());
+                r.data = null;
             }
         }
         System.out.println("clean " + removeList);
@@ -99,7 +95,9 @@ public class Room extends Beans {
     private static final Map<Session, Object> REMOTE_CACHE = new WeakHashMap<>(2);
 
     public static boolean checkOpen(Session session) {
-        if(session == null || !session.isOpen()) return false;
+        if (session == null || !session.isOpen()) {
+            return false;
+        }
         try {
             Object remote = REMOTE_CACHE.get(session);
             if (remote == null) {
@@ -154,22 +152,24 @@ public class Room extends Beans {
         }
         this.player2 = player2;
         if (canStart()) {
-            start();
+            start(false);
         }
         player2.addMessageHandler(this.new Player2Handler());
     }
 
-    public void start() {
+    public void start(boolean restart) {
         if (!canStart()) {
             throw new IllegalStateException();
         }
         steps = 0;
-        if (player1IsWhite) {
-            sendToPlayer1("start:white");
-            sendToPlayer2("start:black");
-        } else {
-            sendToPlayer1("start:black");
-            sendToPlayer2("start:white");
+        if (!restart) {
+            if (player1IsWhite) {
+                sendToPlayer1("start:white");
+                sendToPlayer2("start:black");
+            } else {
+                sendToPlayer1("start:black");
+                sendToPlayer2("start:white");
+            }
         }
         updateAllMap(EMPTY, false, player1.getBasicRemote(), player2.getBasicRemote());
         broadcast("clear");
@@ -280,9 +280,9 @@ public class Room extends Beans {
                     steps++;
                     Room.this.data[x][y] = Player1Color();
                     update(x, y);
-                    checkWin(x, y, data[x][y]);
                     turnToBlack = !turnToBlack;
                     broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
+                    checkWin(x, y, data[x][y]);
                 } catch (NumberFormatException ex) {
                     return;
                 }
@@ -398,7 +398,7 @@ public class Room extends Beans {
         broadcast("gameover:" + message);
         System.out.println("gameover " + message);
         if (canRestart && canStart()) {
-            start();
+            start(true);
         } else {
             isGarbage = true;
             closeAll();

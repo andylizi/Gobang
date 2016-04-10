@@ -40,6 +40,8 @@ function onMessage(evt){
         turn = isWhite;
         if(turn){
             $("table").addClass("turn");
+        }else{
+            $("table").removeClass("turn");
         }
         $("td").click(function(){
             if(!turn){

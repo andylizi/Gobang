@@ -86,6 +86,6 @@ body{
     background: url('../image/gear.png') no-repeat;
     top: 53px;
     right: -38px;
-    animation: rotate 0.8s linear 0s infinite;
+    animation: rotate 0.7s linear 0s infinite;
 }
 
