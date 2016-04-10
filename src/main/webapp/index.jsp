@@ -33,9 +33,6 @@
                         showJoin();
                     }
                     refushList(false);
-                    setInterval(function(){
-                        refushList(true);
-                    },3000);
                 });
                 function showJoin() {
                     location.hash = "#join";
