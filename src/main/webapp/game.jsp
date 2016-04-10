@@ -7,15 +7,17 @@
 
     if ("create".equalsIgnoreCase(request.getQueryString())) {
         create = true;
+    } else if("closed".equalsIgnoreCase(request.getQueryString())){
+        response.getWriter().write("<script>alert(\"This room have been over,please re-create one!\");location.href=\"index.jsp\";</script>");
     } else if (request.getQueryString() != null) {
         Room room = GameStorage.rooms.get(request.getQueryString().toString().toLowerCase());
         if (room == null) {
-            response.sendRedirect("index.jsp");
+            response.getWriter().write("<script>alert(\"Can not found room id \\\""+request.getQueryString()+"\\\"!\");location.href=\"index.jsp\";</script>");
             return;
         }
         roomId = room.getRoomId();
     } else {
-        response.sendRedirect("index.jsp");
+        response.sendRedirect("index.jsp#join");
     }
 %>
 <!DOCTYPE html>
@@ -34,7 +36,7 @@
         <script src="js/game.js"></script>
     </head>
     <body>
-        <table align="center" class="">
+        <table align="center">
             <tbody>
                 <tr class="border-top" id="row_0">
                     <td class="border-left" id="row_0_0"></td>

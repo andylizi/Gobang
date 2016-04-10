@@ -70,6 +70,7 @@ body{
 }
 #list li .id{
     color: #4C07EC;
+    cursor: pointer;
 }
 #list li .playing{
     color: #E406F1;
@@ -85,6 +86,6 @@ body{
     background: url('../image/gear.png') no-repeat;
     top: 53px;
     right: -38px;
-    animation: rotate 1s linear 0s infinite;
+    animation: rotate 0.8s linear 0s infinite;
 }
 

@@ -9,6 +9,8 @@
         <link href="style/common.css" rel="stylesheet" type="text/css">
         <link href="style/index.css" rel="stylesheet" type="text/css">
         <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+        <script src="js/lib/hclass.js"></script>
+        <script src="js/socket.js"></script>
     </head>
     <body>
         <span id="gear"></span>
@@ -32,7 +34,7 @@
                     if (location.hash == "#join") {
                         showJoin();
                     }
-                    refushList(false);
+                    initStatusSocket();
                 });
                 function showJoin() {
                     location.hash = "#join";
@@ -51,7 +53,9 @@
                                     $(this).css("display", "inline").css("visibility", "hidden");
                                     $("#btn_join").one("click", showJoin).animate({
                                         marginLeft: "20px"
-                                    }, "fast");
+                                    }, "fast", "swing", function () {
+                                        $("#txt_join").val("");
+                                    });
                                 });
                             }, 200);
                         });
@@ -72,37 +76,63 @@
                             $("#txt_join")[0].focus();
                             return;
                         }
+                        $("#btn_join").val("Loading...");
                         $.get("join.jsp?" + val, function (data) {
                             if (parseInt(data) == 1) {
                                 location.href = "game.jsp?" + val;
                             } else {
-                                alert("RoomId Not Found");
-                                $("#txt_join").val("")[0].focus();
+                                $("#txt_join").css("border-bottom", "1px red solid").animate({
+                                    "margin-right": "+5px",
+                                    "margin-left": "-5px"
+                                }, 50).animate({
+                                    "margin-right": "-5px",
+                                    "margin-left": "+5px"
+                                }, 50).animate({
+                                    "margin-right": "+5px",
+                                    "margin-left": "-5px"
+                                }, 50).animate({
+                                    "margin-right": "-5px",
+                                    "margin-left": "+5px"
+                                }, 50).animate({
+                                    "margin-right": "+5px",
+                                    "margin-left": "-5px"
+                                }, 50).animate({
+                                    "margin-right": "-5px",
+                                    "margin-left": "+5px"
+                                }, 50).animate({
+                                    "margin-right": "-5px",
+                                    "margin-left": "+5px"
+                                }, 50, "swing", function () {
+                                    setTimeout(function () {
+                                        $("#txt_join").css("border-bottom", "1px rgba(177,175,175,0.50) solid")[0].focus();
+                                    }, 400);
+                                });
                             }
                         });
                     });
                 }
-                function refushList(cache){
-                    $.ajax("roomlist.jsp", {
-                        dataType: "json",
-                        cache: cache,
-                        success: function (data) {
-                            var list = $("#list ul").empty();
-                            var changed = false;
-                            $.each(data, function (id, v) {
-                                changed = true;
-                                list.append("<li>Room - <span class='id'>" + id + "</span>&nbsp;&nbsp;<span class='"+(v.playing ? "playing" : "waiting")+"'>"+
-                                        (v.playing ? "Playing" : "Waiting")+"</span>&nbsp;\n\
+                var socket = new Socket();
+                function initStatusSocket() {
+                    var list = $("#list ul");
+                    socket.connect(location.href.replace(/#\w*$/, "").replace(/^\w+:/, "ws:").replace(/\/index.jsp|\/$/, "/status"), function () {}, function (evt) {
+                        list.empty();
+                        if (evt.data == "{}") {
+                            list.parent(":visible").slideUp("slow");
+                            return;
+                        }
+                        $.each($.parseJSON(evt.data), function (id, v) {
+                            list.append("<li>Room - <span class='id'>" + id + "</span>&nbsp;&nbsp;<span class='" + (v.playing ? "playing" : "waiting") + "'>" +
+                                    (v.playing ? "Playing" : "Waiting") + "</span>&nbsp;\n\
                                     Rounds: " + v.rounds + "&nbsp;&nbsp;\n\
                                     Steps: " + v.steps + "&nbsp;&nbsp;\n\
-                                    Watchers: " + v.watchers + "&nbsp;&nbsp;&nbsp;&nbsp;<a href='game.jsp?"+id+"'>["+(v.playing ? "Watch" : "Join")+"]</a></li>");
-                            });
-                            if(!changed){
-                                list.append("<li>None</li>");
-                            }
-                            list.parent().slideDown("slow");
-                        }
-                    });
+                                    Watchers: " + v.watchers + "&nbsp;&nbsp;&nbsp;&nbsp;<a href='game.jsp?" + id + "'>[" + (v.playing ? "Watch" : "Join") + "]</a></li>");
+                        });
+                        $(".id").click(function () {
+                            showJoin();
+                            $("#txt_join").val(this.innerHTML);
+                        });
+                        list.parent(":hidden").slideDown("slow");
+                    }, function () {}, function () {});
                 }
                 //-->
             </script>
@@ -111,8 +141,8 @@
             </div>
             <div id="content">
                 <span class="button" id="btn_create">Create Room</span>
-                <input type="text" id="txt_join" style="visibility: hidden;width:0px;" placeholder="Room ID"/>
-                <span class="button" style="background-color: #00bcd4;margin-left: 20px;" id="btn_join">Join Joom</span>
+                <input type="text" id="txt_join" style="visibility: hidden;width:0px;margin-right:0px;margin-left:0px;" placeholder="Room ID" autocomplete="off" autofocus="on"/>
+                <span class="button" style="background-color: #00bcd4;margin-left: 20px;" id="btn_join">Join Room</span>
                 <span class="button" style="background-color: #00D437;display: none;margin-left: 10px;" id="btn_back">Back</span>
                 <div id="list" style="display:none;">
                     <ul>

@@ -16,6 +16,7 @@
  */
 Socket = (function () {
     var Socket = Class.extend({
+        connected: false,
         connect: function (url, connectedCallback, messageCallback, errorCallback, closeCallback) {
             if (window.WebSocket) {
                 websocket = new WebSocket(url);
@@ -24,10 +25,16 @@ Socket = (function () {
             } else {
                 return false;
             }
-            websocket.onopen = connectedCallback;
+            websocket.onopen = function(){
+                connected = true;
+                connectedCallback();
+            };
             websocket.onmessage = messageCallback;
             websocket.onerror = errorCallback;
-            websocket.onclose = closeCallback;
+            websocket.onclose = function(){
+                connected = false;
+                closeCallback();
+            };
             var old = window.onbeforeunload;
             window.onbeforeunload = function () {
                 websocket.close();

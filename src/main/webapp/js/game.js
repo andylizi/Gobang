@@ -59,7 +59,6 @@ function onMessage(evt){
     }else if(args[0] == "clear"){
         $(".chessiece").remove();
     }else if(args[0] == "closesocket"){
-        alert("server close")
         socket.close();
     }else{
         alert(evt.data);
@@ -69,6 +68,7 @@ function onError(err){
     alert("Error " + err);
 }
 function onClose(){
+    window.history.pushState({},0,location.href.replace(/\?\w+$/,"?closed"));
     alert("WebSocket closed...");
 }
 var socketurl = location.href.replace(/^\w+:/,"ws:").replace("game.jsp","socket").replace("?create","");

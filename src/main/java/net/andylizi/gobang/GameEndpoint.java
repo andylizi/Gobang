@@ -22,20 +22,22 @@ import javax.websocket.server.ServerEndpoint;
 import static net.andylizi.gobang.Room.clean;
 
 @ServerEndpoint("/socket")
-public class WebSocketEndpoint extends Endpoint{
+public class GameEndpoint extends Endpoint {
+
     @OnOpen
     @Override
     public void onOpen(Session session, EndpointConfig config) {
         clean();
-        System.out.println("open "+session.getId());
-        if(session.getQueryString() == null || session.getQueryString().isEmpty()){
+        System.out.println("Open Session " + session.getId());
+        session.setMaxIdleTimeout(0);
+        if (session.getQueryString() == null || session.getQueryString().isEmpty()) {
             Room.newRoom(session);
-        }else{
+        } else {
             String str = session.getQueryString();
-            if(GameStorage.rooms.containsKey(str.toLowerCase())){
+            if (GameStorage.rooms.containsKey(str.toLowerCase())) {
                 Room room = GameStorage.rooms.get(str.toLowerCase());
                 room.join(session);
-            }else{
+            } else {
                 try {
                     session.getBasicRemote().sendText("err:roomId not found");
                     session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "roomId not found"));
@@ -47,9 +49,9 @@ public class WebSocketEndpoint extends Endpoint{
 
     @OnClose
     @Override
-    public void onClose(Session session, CloseReason closeReason){
-        System.out.println("close "+session.getId()+" cause by " +closeReason.toString());
-        for(Room room:GameStorage.rooms.values()){
+    public void onClose(Session session, CloseReason closeReason) {
+        System.out.println("Close session " + session.getId() + " cause by " + closeReason.toString());
+        for (Room room : GameStorage.rooms.values()) {
             room.onQuit(session);
         }
     }
@@ -57,16 +59,13 @@ public class WebSocketEndpoint extends Endpoint{
     @OnError
     @Override
     public void onError(Session session, Throwable throwable) {
-        if(throwable.getCause() != null && throwable.getCause().getClass().equals(java.util.concurrent.ExecutionException.class)){
-            try {
-                session.close();
-            } catch (IOException|IllegalStateException ex) {
-            }
-            return;
-        }
-        for(Room room:GameStorage.rooms.values()){
-            room.onQuit(session);
-        }
+        if(throwable == null) return;
         throwable.printStackTrace();
+        if (session != null) {
+            for (Room room : GameStorage.rooms.values()) {
+                if(room != null)
+                    room.onQuit(session);
+            }
+        }
     }
 }
