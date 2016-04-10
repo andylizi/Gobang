@@ -36,7 +36,8 @@
         <script src="js/game.js"></script>
     </head>
     <body>
-        <table align="center">
+        <p align="center">Holder: <b id="holder"></b> You are: <b id="yourself"></b></p>
+        <table align="center" class="">
             <tbody>
                 <tr class="border-top" id="row_0">
                     <td class="border-left" id="row_0_0"></td>
