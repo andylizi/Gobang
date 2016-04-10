@@ -34,6 +34,7 @@
         <script src="js/game.js"></script>
     </head>
     <body>
+        <p align="center">Holder: <code id="holder"></code> You are: <code id="yourself"></code></p>
         <table align="center" class="">
             <tbody>
                 <tr class="border-top" id="row_0">

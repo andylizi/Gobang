@@ -35,6 +35,8 @@ function onMessage(evt){
         isWhite = args[1] == "white";
         spectator = args[1] == "spectator";
         alert("You are "+args[1]);
+	$("#holder").text("white");
+	$("#yourself").text(args[1]);
         turn = isWhite;
         if(turn){
             $("table").addClass("turn");
@@ -51,6 +53,7 @@ function onMessage(evt){
         setColor(args[1],args[2],args[3]);
     }else if(args[0] == "turn"){
         if(spectator) return;
+	$("#holder").text(args[1].toLowerCase());
         turn = (isWhite ? args[1] == "WHITE" : args[1] == "BLACK");
         $("table").toggleClass("turn");
     }else if(args[0] == "gameover"){
