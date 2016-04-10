@@ -18,7 +18,18 @@ package net.andylizi.gobang;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
-public abstract class GameStorge {
+public abstract class GameStorage {
     public static final Map<String,Room> rooms = new HashMap<>(1);
+    static{
+        new Timer(true).schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Room.clean();
+            }
+        }, 1000, TimeUnit.SECONDS.toMillis(20));
+    }
 }

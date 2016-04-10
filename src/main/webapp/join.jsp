@@ -1,9 +1,9 @@
-<%@page import="net.andylizi.gobang.GameStorge"%><%@page contentType="text/html" pageEncoding="UTF-8"%><%
+<%@page import="net.andylizi.gobang.GameStorage"%><%@page contentType="text/html" pageEncoding="UTF-8"%><%
     if(request.getQueryString() == null){
         response.sendRedirect("index.jsp");
         return;
     }
-    if(GameStorge.rooms.containsKey(request.getQueryString().toLowerCase())){
+    if(GameStorage.rooms.containsKey(request.getQueryString().toLowerCase())){
         session.setAttribute("playing",request.getQueryString().toLowerCase());
  %>
 1

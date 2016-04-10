@@ -14,14 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+new Image().src="image/white.png";
+new Image().src="image/black.png";
 var isWhite = false;
 var started = false;
 var spectator = false;
 var turn = false;
-var socket = new Socket();;
+var socket = new Socket();
 function onConnected(){
+    console.log("Connected");
 }
 function onMessage(evt){
+    console.log("Server: "+evt.data);
     var args = evt.data.split(":");
     if(args[0] == "join"){
         if(create)
@@ -51,17 +55,21 @@ function onMessage(evt){
         $("table").toggleClass("turn");
     }else if(args[0] == "gameover"){
         alert("Game Over!\r\n"+args[1]);
+        started = false;
     }else if(args[0] == "clear"){
         $(".chessiece").remove();
+    }else if(args[0] == "closesocket"){
+        alert("server close")
+        socket.close();
     }else{
         alert(evt.data);
     }
 }
 function onError(err){
-    alert("error " + err);
+    alert("Error " + err);
 }
 function onClose(){
-    alert("close");
+    alert("WebSocket closed...");
 }
 var socketurl = location.href.replace(/^\w+:/,"ws:").replace("game.jsp","socket").replace("?create","");
 if(!socket){
@@ -72,7 +80,7 @@ if(!socket){
 function setColor(x,y,c){
     var e = $("#row_"+x+"_"+y);
     if(c == 0){ //EMPTY
-        e.html("<span class='chessiece black'>&nbsp;</span>");
+        e.empty();
     }else if(c == 1){  //BLACK
         e.html("<span class='chessiece black'>&nbsp;</span>")
     }else if(c == 2){  //WHITE

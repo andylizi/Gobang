@@ -19,19 +19,21 @@ package net.andylizi.gobang;
 import java.io.IOException;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
+import static net.andylizi.gobang.Room.clean;
 
 @ServerEndpoint("/socket")
 public class WebSocketEndpoint extends Endpoint{
     @OnOpen
     @Override
     public void onOpen(Session session, EndpointConfig config) {
+        clean();
         System.out.println("open "+session.getId());
         if(session.getQueryString() == null || session.getQueryString().isEmpty()){
             Room.newRoom(session);
         }else{
             String str = session.getQueryString();
-            if(GameStorge.rooms.containsKey(str.toLowerCase())){
-                Room room = GameStorge.rooms.get(str.toLowerCase());
+            if(GameStorage.rooms.containsKey(str.toLowerCase())){
+                Room room = GameStorage.rooms.get(str.toLowerCase());
                 room.join(session);
             }else{
                 try {
@@ -47,7 +49,7 @@ public class WebSocketEndpoint extends Endpoint{
     @Override
     public void onClose(Session session, CloseReason closeReason){
         System.out.println("close "+session.getId()+" cause by " +closeReason.toString());
-        for(Room room:GameStorge.rooms.values()){
+        for(Room room:GameStorage.rooms.values()){
             room.onQuit(session);
         }
     }
@@ -62,10 +64,9 @@ public class WebSocketEndpoint extends Endpoint{
             }
             return;
         }
-        for(Room room:GameStorge.rooms.values()){
+        for(Room room:GameStorage.rooms.values()){
             room.onQuit(session);
         }
-        System.out.println("a");
         throwable.printStackTrace();
     }
 }

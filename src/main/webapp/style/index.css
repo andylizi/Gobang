@@ -48,6 +48,34 @@ body{
     border-top: none;
     padding: 10px 60px 0 60px;
     vertical-align: middle;
+}#list{
+    color: #0A0A0A;
+    border: 0 none;
+    border-radius: 10px;
+    background: #cddc39;
+    background-clip: border-box;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.22), 0 1px 4px rgba(0,0,0,0.12);
+    margin: 20px auto 0 auto;
+    padding: 1px 0;
+    max-width: 600px;
+}
+#list a{
+    color: #009688;
+}
+#list ul{
+    cursor: default;
+    text-align: left;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+#list li .id{
+    color: #4C07EC;
+}
+#list li .playing{
+    color: #E406F1;
+}
+#list li .waiting{
+    color: #0228F7;
 }
 #gear:before{
     content: "";

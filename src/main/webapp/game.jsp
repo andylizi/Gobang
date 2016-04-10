@@ -1,5 +1,5 @@
 <%@page import="net.andylizi.gobang.Room"%>
-<%@page import="net.andylizi.gobang.GameStorge"%>
+<%@page import="net.andylizi.gobang.GameStorage"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
     boolean create = false;
@@ -8,7 +8,7 @@
     if ("create".equalsIgnoreCase(request.getQueryString())) {
         create = true;
     } else if (request.getQueryString() != null) {
-        Room room = GameStorge.rooms.get(request.getQueryString().toString().toLowerCase());
+        Room room = GameStorage.rooms.get(request.getQueryString().toString().toLowerCase());
         if (room == null) {
             response.sendRedirect("index.jsp");
             return;
@@ -37,29 +37,29 @@
         <table align="center" class="">
             <tbody>
                 <tr class="border-top" id="row_0">
-                    <td class="border-left" id="row_0_0">&nbsp;</td>
+                    <td class="border-left" id="row_0_0"></td>
                     <% for (int col = 1; col < 14; col++) {%>
-                    <td id="row_0_<%=col%>">&nbsp;</td>
+                    <td id="row_0_<%=col%>"></td>
                     <% } %>
-                    <td class="border-right" id="row_0_14">&nbsp;</td>
+                    <td class="border-right" id="row_0_14"></td>
                 </tr>
 
                 <% for (int row = 1; row < 14; row++) {%>
                 <tr id="row_<%=row%>">
-                    <td class="border-left" id="row_<%=row%>_0">&nbsp;</td>
+                    <td class="border-left" id="row_<%=row%>_0"></td>
                     <% for (int col = 1; col < 14; col++) {%>
-                    <td id="row_<%=row%>_<%=col%>">&nbsp;</td>
+                    <td id="row_<%=row%>_<%=col%>"></td>
                     <% }%>
-                    <td class="border-right" id="row_<%=row%>_14">&nbsp;</td>
+                    <td class="border-right" id="row_<%=row%>_14"></td>
                 </tr>
                 <% } %>
 
                 <tr class="border-bottom" id="row_14">
-                    <td class="border-left" id="row_14_0">&nbsp;</td>
+                    <td class="border-left" id="row_14_0"></td>
                     <% for (int col = 1; col < 14; col++) {%>
-                    <td id="row_14_<%=col%>">&nbsp;</td>
+                    <td id="row_14_<%=col%>"></td>
                     <% }%>
-                    <td class="border-right" id="row_14_14">&nbsp;</td>
+                    <td class="border-right" id="row_14_14"></td>
                 </tr>
             </tbody>
         </table>

@@ -17,28 +17,30 @@
 Socket = (function () {
     var Socket = Class.extend({
         connect: function (url, connectedCallback, messageCallback, errorCallback, closeCallback) {
-            if ('WebSocket' in window) {
+            if (window.WebSocket) {
                 websocket = new WebSocket(url);
-                websocket.onopen = connectedCallback;
-                websocket.onmessage = messageCallback;
-                websocket.onerror = errorCallback;
-                websocket.onclose = closeCallback;
-                var old = window.onbeforeunload;
-                window.onbeforeunload = function(){
-                    websocket.close();
-                    old();
-                };
+            } else if (window.MozWebSocket) {
+                websocket = new KozWebSocket(url);
             } else {
                 return false;
             }
+            websocket.onopen = connectedCallback;
+            websocket.onmessage = messageCallback;
+            websocket.onerror = errorCallback;
+            websocket.onclose = closeCallback;
+            var old = window.onbeforeunload;
+            window.onbeforeunload = function () {
+                websocket.close();
+                old();
+            };
         },
-        close: function(){
-            if(websocket){
+        close: function () {
+            if (websocket) {
                 websocket.close();
             }
         },
-        send: function(msg){
-            if(websocket){
+        send: function (msg) {
+            if (websocket) {
                 websocket.send(msg);
             }
         }
