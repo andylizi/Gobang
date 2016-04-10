@@ -52,8 +52,8 @@ function onMessage(evt){
     }else if(args[0] == "update"){
         setColor(args[1],args[2],args[3]);
     }else if(args[0] == "turn"){
+        $("#holder").text(args[1].toLowerCase());
         if(spectator) return;
-	$("#holder").text(args[1].toLowerCase());
         turn = (isWhite ? args[1] == "WHITE" : args[1] == "BLACK");
         $("table").toggleClass("turn");
     }else if(args[0] == "gameover"){
