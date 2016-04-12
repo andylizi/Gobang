@@ -15,8 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 table{
-    margin-top: 10px;
-    border: 0px none;
+    margin-left: 16%;
     border-radius: 5px;
     background: #00897b;
     background-clip: border-box;
@@ -26,6 +25,7 @@ td{
     position: relative;
     width: 50px;
     height: 50px;
+    border: none;
     background: url('../image/cross.svg') no-repeat 0 0;
     background-size: cover;
     text-align: center;
@@ -65,17 +65,137 @@ td .chessiece{
     height: 35px;
     left: 8px;
     top: 8px;
-    border: none;
     -moz-border-radius: 32px;
     -webkit-border-radius: 32px;
     border-radius: 32px;
     -moz-box-shadow: 0.5px 0.5px 1px 0px #424242 ;
     -webkit-box-shadow: 0.5px 0.5px 1px 0px #424242 ;
     box-shadow: 0.5px 0.5px 1px 0px #424242 ;
+    transition: opacity .5s ease;
+    -webkit-transition: opacity .5s ease;
 }
 td .chessiece.black{
     background-image: url('../image/black.png');
 }
 td .chessiece.white{
     background-image: url('../image/white.png');
+}
+td .chessiece.last{
+    opacity: 0.9;
+}
+td .chessiece.last:hover{
+    opacity: 1;
+}
+
+#bar{
+    position: absolute;
+    top: 15%;
+    right: 2%;
+    width: 350px;
+    height: 180px;
+    border: none;
+    padding: 20px;
+}
+.bar_turn{
+    border: 1px #D8D8D8 solid !important; 
+}
+#bar_white,#bar_black{
+    height: 50%;
+    border: 1px transparent solid;
+    border-radius: 3px;
+    background: transparent;
+    background-clip: border-box;
+    padding: 10px 20px;
+}
+#bar_white{
+    margin-bottom: 20px;
+}
+#bar .disable{
+    opacity: 0.7;
+}
+#bar img{
+    vertical-align: middle;
+    margin-right: 10px;
+}
+#bar .title{
+    width:auto;
+    height:auto;
+    border: none;
+    border-bottom: 1px #D8D8D8 solid;
+    padding-bottom: 5px;
+}
+#bar div.you .title_content:after{
+    content: " [You]";
+    font-size: 12px;
+    font-weight: normal;
+    color: #999;
+}
+#bar .title_content{
+    font-size: 20px;
+    font-weight: bold;
+}
+#bar .content{
+    margin-left: 20px;
+    margin-top: 18px;
+}
+#bar_chat{
+    margin-top: 10px;
+    border: 1px #D8D8D8 solid;
+    border-radius: 3px;
+    background: transparent;
+    background-clip: border-box;
+    padding: 10px 20px;
+}
+#bar_chat_content_wrapper{
+    position: relative;
+    height: 100px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    border: 1px #D8D8D8 solid;
+    border-top: none;
+    padding: 0 10px;
+}
+#bar_chat_content{
+    position: absolute;
+    max-height: 100px;
+    font-size: 12px;
+}
+#bar_chat_mask{
+    position: absolute;
+    top: 345px;
+    left: 42px;
+    height: 110px;
+    width: 304px;
+    background: linear-gradient( rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.6) 100% );
+    background: -webkit-linear-gradient( rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.6) 100% );
+    filter: alpha( Opacity=0, FinishOpacity=60, Style=1, StartX=0, StartY=0, FinishX=0, FinishY=110 );
+}
+#txt_chat{
+    width: 99%;
+}
+#mask{
+    position: absolute;
+    z-index: 255;
+    top: 0;
+    left: 0;
+    min-width: 100%;
+    min-height: 100%;
+    background: rgba(0,0,0,0.5);
+}
+#mask #msgbox{
+    color: black;
+    background: white;
+    border-radius: 5px;
+    z-index: 99999;
+    margin: 0 auto;
+    width: 400px;
+    padding: 20px 20px;
+}
+a{
+    color: #3f51b5;
+}
+#mask #msgbox #msgbox_title,#bar_chat_title{
+    font-weight: bolder;
+    border-bottom: 1px #D8D8D8 solid;
+    margin-bottom: 10px;
 }

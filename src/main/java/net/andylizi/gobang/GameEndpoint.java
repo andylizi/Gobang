@@ -17,26 +17,31 @@
 package net.andylizi.gobang;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.WeakHashMap;
+import javax.servlet.http.HttpSession;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import static net.andylizi.gobang.Room.clean;
 
-@ServerEndpoint("/socket")
+@ServerEndpoint(value="/socket",configurator=HttpSessionConfigurator.class)
 public class GameEndpoint extends Endpoint {
-
+    private final Map<Session,User> USER_CACHE = new WeakHashMap<>();
+    
     @OnOpen
     @Override
     public void onOpen(Session session, EndpointConfig config) {
         clean();
-        System.out.println("Open Session " + session.getId());
-        session.setMaxIdleTimeout(0);
+        User user = createUser(session, (HttpSession) config.getUserProperties().get("HttpSession"));
+        System.out.println("Open Session " + user.getId());
         if (session.getQueryString() == null || session.getQueryString().isEmpty()) {
-            Room.newRoom(session);
+            Room.newRoom(user);
         } else {
             String str = session.getQueryString();
             if (GameStorage.rooms.containsKey(str.toLowerCase())) {
                 Room room = GameStorage.rooms.get(str.toLowerCase());
-                room.join(session);
+                System.out.println("join "+room.getRoomId());
+                room.join(user);
             } else {
                 try {
                     session.getBasicRemote().sendText("err:roomId not found");
@@ -46,14 +51,24 @@ public class GameEndpoint extends Endpoint {
             }
         }
     }
+    public User createUser(Session session,HttpSession httpSession){
+        User user = USER_CACHE.get(session);
+        if(user == null){
+            if(httpSession == null) return null;
+            user = new User(session, httpSession);
+            USER_CACHE.put(session, user);
+        }
+        return user;
+    }
 
     @OnClose
     @Override
     public void onClose(Session session, CloseReason closeReason) {
         System.out.println("Close session " + session.getId() + " cause by " + closeReason.toString());
         for (Room room : GameStorage.rooms.values()) {
-            room.onQuit(session);
+            room.onQuit(createUser(session, null));
         }
+        clean();
     }
 
     @OnError
@@ -64,7 +79,7 @@ public class GameEndpoint extends Endpoint {
         if (session != null) {
             for (Room room : GameStorage.rooms.values()) {
                 if(room != null)
-                    room.onQuit(session);
+                    room.onQuit(createUser(session, null));
             }
         }
     }

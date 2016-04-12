@@ -16,24 +16,15 @@
  */
 package net.andylizi.gobang;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
+import javax.websocket.HandshakeResponse;
+import javax.websocket.server.HandshakeRequest;
+import javax.websocket.server.ServerEndpointConfig;
 
-public abstract class GameStorage {
+public class HttpSessionConfigurator extends ServerEndpointConfig.Configurator{
 
-    public static final Map<String, Room> rooms = new HashMap<>(1);
-
-    static {
-        if (false) {
-            new Timer(true).schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    Room.clean();
-                }
-            }, 1000, TimeUnit.MINUTES.toMillis(10));
-        }
+    @Override
+    public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
+        super.modifyHandshake(sec, request, response);
+        sec.getUserProperties().put("HttpSession", request.getHttpSession());
     }
 }

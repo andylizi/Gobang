@@ -38,7 +38,7 @@ Socket = (function () {
             var old = window.onbeforeunload;
             window.onbeforeunload = function () {
                 websocket.close();
-                old();
+                if(old) old();
             };
         },
         close: function () {

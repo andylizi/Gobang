@@ -18,22 +18,18 @@ package net.andylizi.gobang;
 
 import java.beans.Beans;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.WeakHashMap;
 import javax.websocket.CloseReason;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
-import javax.websocket.Session;
 
 public class Room extends Beans {
 
@@ -45,9 +41,10 @@ public class Room extends Beans {
 
     public boolean isGarbage = false;
     private final String roomId;
-    private Session player1;
-    private Session player2;
-    private final Set<Session> spectators = new HashSet<>();
+    private final Handler handler;
+    private User player1;
+    private User player2;
+    private final Set<User> spectators = new HashSet<>();
     private boolean playing = false;
     private final boolean player1IsWhite;
 
@@ -56,18 +53,17 @@ public class Room extends Beans {
     private int rounds = 0;
     private int[][] data = new int[15][15];
 
-    public static Room newRoom(Session owner) {
+    public static Room newRoom(User owner) {
         StringBuilder builder = new StringBuilder(5);
         builder.append(random.nextInt(9) + 1);
         for (int i = 0; i < 4; i++) {
             builder.append(random.nextInt(10));
         }
-        builder.append(owner.getId());
+        builder.append(owner.getSocketId());
         Room room = new Room(builder.toString().toLowerCase(), owner);
-        owner.addMessageHandler(room.new Player1Handler());
         GameStorage.rooms.put(room.roomId, room);
         try {
-            owner.getBasicRemote().sendText("join:" + room.getRoomId());
+            owner.getBasicRemote().sendText("room:" + room.getRoomId());
         } catch (IOException ex) {
             throw new IllegalArgumentException(ex);
         }
@@ -79,82 +75,69 @@ public class Room extends Beans {
     }
 
     public synchronized static void clean() {
-        Set<String> removeList = new HashSet<>(0);
-        for (Room r : GameStorage.rooms.values()) {
-            if (r.isGarbage) {
-                removeList.add(r.getRoomId());
-                r.data = null;
-            }
-        }
-        System.out.println("clean " + removeList);
-        GameStorage.rooms.keySet().removeAll(removeList);
-    }
-
-    private static Field REMOTE_ENDPOINT_FIELD;
-    private static Field ENDPOINT_CLOESED_FIELD;
-    private static final Map<Session, Object> REMOTE_CACHE = new WeakHashMap<>(2);
-
-    public static boolean checkOpen(Session session) {
-        if (session == null || !session.isOpen()) {
-            return false;
-        }
-        try {
-            Object remote = REMOTE_CACHE.get(session);
-            if (remote == null) {
-                if (REMOTE_ENDPOINT_FIELD == null) {
-                    REMOTE_ENDPOINT_FIELD = session.getClass().getDeclaredField("wsRemoteEndpoint");
-                    REMOTE_ENDPOINT_FIELD.setAccessible(true);
+        if (!GameStorage.rooms.isEmpty()) {
+            Set<String> removeList = new HashSet<>(0);
+            for (Room r : GameStorage.rooms.values()) {
+                if (r.isGarbage) {
+                    removeList.add(r.getRoomId());
+                    r.data = null;
                 }
-                remote = REMOTE_ENDPOINT_FIELD.get(session);
-                REMOTE_CACHE.put(session, remote);
             }
-            if (ENDPOINT_CLOESED_FIELD == null) {
-                ENDPOINT_CLOESED_FIELD = remote.getClass().getSuperclass().getDeclaredField("closed");
-                ENDPOINT_CLOESED_FIELD.setAccessible(true);
-            }
-            return !ENDPOINT_CLOESED_FIELD.getBoolean(remote);
-        } catch (ReflectiveOperationException ex) {
-            ex.printStackTrace();
-            return false;
+            System.out.println("clean " + removeList);
+            GameStorage.rooms.keySet().removeAll(removeList);
         }
     }
 
-    private Room(String roomId, Session player1) {
+    public static boolean checkOpen(User user) {
+        return user != null && user.isOpen();
+    }
+
+    private Room(String roomId, User player1) {
         this.roomId = roomId.toLowerCase();
         this.player1 = player1;
         player1IsWhite = random.nextBoolean();
+        handler = new Handler();
+        player1.addMessageHandler(handler.new Player1Handler());
     }
 
     public String getRoomId() {
         return roomId;
     }
 
-    public Session getPlayer1() {
+    public User getPlayer1() {
         return player1;
     }
 
-    public Session getPlayer2() {
+    public User getPlayer2() {
         return player2;
     }
 
-    public void join(Session player2) {
+    public void join(User player2) {
         if (player2 == null) {
             return;
         }
         if (playing && checkOpen(player2)) {
             try {
                 spectators.add(player2);
+                player2.addMessageHandler(handler.new SpectatorHandler(player2.getName()));
                 player2.getBasicRemote().sendText("start:spectator");
                 updateAllMap(-1, true, player2.getBasicRemote());
+                player2.getBasicRemote().sendText("status:white:"+(turnToBlack ? "Waiting..." : "Holding..."));
+                player2.getBasicRemote().sendText("status:black:"+(turnToBlack ? "Holding..." : "Waiting..."));
+                player2.getBasicRemote().sendText("join:white:"+(player1IsWhite ? player1.getName() : player2.getName()));
+                player2.getBasicRemote().sendText("join:black:"+(!player1IsWhite ? player1.getName() : player2.getName()));
+                broadcast("join:spectator:"+player2.getName());
             } catch (IOException ex) {
             }
             return;
         }
         this.player2 = player2;
+        broadcast("join:"+(player1IsWhite ? "black":"white")+":"+player2.getName());
+        sendToPlayer2("join:"+(player1IsWhite ? "white":"black")+":"+player1.getName());
         if (canStart()) {
             start(false);
         }
-        player2.addMessageHandler(this.new Player2Handler());
+        player2.addMessageHandler(this.handler.new Player2Handler());
     }
 
     public void start(boolean restart) {
@@ -170,7 +153,10 @@ public class Room extends Beans {
                 sendToPlayer1("start:black");
                 sendToPlayer2("start:white");
             }
+            broadcast("status:white:Holding...");
+            broadcast("status:black:Waiting...");
         }
+        broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
         updateAllMap(EMPTY, false, player1.getBasicRemote(), player2.getBasicRemote());
         broadcast("clear");
         playing = true;
@@ -181,25 +167,25 @@ public class Room extends Beans {
         return !playing && checkOpen(player1) && checkOpen(player2);
     }
 
-    public void onQuit(Session session) {
-        if (session == null) {
+    public void onQuit(User user) {
+        if (user == null) {
             return;
         }
-        if (player1 != null && session.equals(player1)) {
+        if (player1 != null && user.equals(player1)) {
             gameOver((player1IsWhite ? "White" : "Black") + " left the game", false);
             isGarbage = true;
-        } else if (player2 != null && session.equals(player2)) {
+        } else if (player2 != null && user.equals(player2)) {
             gameOver((!player1IsWhite ? "White" : "Black") + " left the game", false);
             isGarbage = true;
-        } else if (spectators.contains(session)) {
-            if (checkOpen(session)) {
+        } else if (spectators.contains(user)) {
+            if (checkOpen(user)) {
                 try {
-                    session.getBasicRemote().sendText("closesocket", true);
-                    session.close(NORMAL_CLOSE);
+                    user.getBasicRemote().sendText("closesocket", true);
+                    user.close(NORMAL_CLOSE);
                 } catch (IOException ex) {
                 }
             }
-            spectators.remove(session);
+            spectators.remove(user);
         }
     }
 
@@ -222,7 +208,7 @@ public class Room extends Beans {
                 || //↙
                 (getTimes(x, y, 1, -1, d) + getTimes(x, y, -1, 1, d)) >= 4) //  oblique
         {
-            gameOver((d == WHITE ? "White" : "Back") + " win!", true);
+            gameOver((d == WHITE ? "White" : "Black") + " win!", true);
         }
     }
 
@@ -249,48 +235,7 @@ public class Room extends Beans {
         return times;
     }
 
-    private class Player1Handler implements MessageHandler.Whole<String> {
-
-        @OnMessage
-        @Override
-        public void onMessage(String message) {
-            StringTokenizer tokenizer = new StringTokenizer(message, ":");
-            String[] args = new String[tokenizer.countTokens()];
-            if (args.length == 0) {
-                System.out.println("error = 0");
-                return;
-            }
-            int i = 0;
-            while (tokenizer.hasMoreTokens()) {
-                args[i++] = tokenizer.nextToken();
-            }
-            tokenizer = null;
-            if (args[0].equals("update")) {
-                try {
-                    int x = Integer.parseInt(args[1]);
-                    int y = Integer.parseInt(args[2]);
-                    if (Player1IsWhite() && turnToBlack) {
-                        updateTo1(x, y);
-                        return;
-                    }
-                    if (data[x][y] != EMPTY) {
-                        updateTo1(x, y);
-                        return;
-                    }
-                    steps++;
-                    Room.this.data[x][y] = Player1Color();
-                    update(x, y);
-                    turnToBlack = !turnToBlack;
-                    broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
-                    checkWin(x, y, data[x][y]);
-                } catch (NumberFormatException ex) {
-                    return;
-                }
-            }
-        }
-    }
-
-    public Set<Session> getSpectators() {
+    public Set<User> getSpectators() {
         return spectators;
     }
 
@@ -318,42 +263,107 @@ public class Room extends Beans {
         return Player2IsWhite() ? WHITE : BLACK;
     }
 
-    private class Player2Handler implements MessageHandler.Whole<String> {
-
-        @OnMessage
-        @Override
-        public void onMessage(String message) {
+    private class Handler {
+        public Handler(){
+            
+        }
+        private String[] tokenizerMessage(String message) {
             StringTokenizer tokenizer = new StringTokenizer(message, ":");
             String[] args = new String[tokenizer.countTokens()];
             if (args.length == 0) {
                 System.out.println("error = 0");
-                return;
+                return new String[0];
             }
             int i = 0;
             while (tokenizer.hasMoreTokens()) {
-                args[i++] = tokenizer.nextToken();
+                args[i++] = tokenizer.nextToken().replace("\\:", ":");
             }
             tokenizer = null;
-            if (args[0].equals("update")) {
-                try {
-                    int x = Integer.parseInt(args[1]);
-                    int y = Integer.parseInt(args[2]);
-                    if (Player2IsWhite() && turnToBlack) {
-                        updateTo1(x, y);
+            return args;
+        }
+        private class SpectatorHandler implements MessageHandler.Whole<String>{
+            private String name;
+
+            public SpectatorHandler(String name) {
+                this.name = name;
+            }
+            
+            @OnMessage
+            @Override
+            public void onMessage(String message) {
+                if(message.startsWith("chat:")){
+                    broadcast(message);
+                }
+            }
+            
+        }
+
+        private class Player1Handler implements MessageHandler.Whole<String> {
+
+            @OnMessage
+            @Override
+            public void onMessage(String message) {
+                String[] args = tokenizerMessage(message);
+                if (args[0].equals("update")) {
+                    try {
+                        int x = Integer.parseInt(args[1]);
+                        int y = Integer.parseInt(args[2]);
+                        if (Player1IsWhite() && turnToBlack) {
+                            updateTo1(x, y);
+                            return;
+                        }
+                        if (data[x][y] != EMPTY) {
+                            updateTo1(x, y);
+                            return;
+                        }
+                        steps++;
+                        Room.this.data[x][y] = Player1Color();
+                        update(x, y);
+                        turnToBlack = !turnToBlack;
+                        broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
+                        checkWin(x, y, data[x][y]);
+                    } catch (NumberFormatException ex) {
                         return;
                     }
-                    if (data[x][y] != EMPTY) {
-                        updateTo1(x, y);
+                } else if (args[0].equals("status")) {
+                    broadcast(message);
+                } else if(args[0].equals("chat")){
+                    broadcast(message);
+                }
+            }
+        }
+
+        private class Player2Handler implements MessageHandler.Whole<String> {
+
+            @OnMessage
+            @Override
+            public void onMessage(String message) {
+                String[] args = tokenizerMessage(message);
+                if (args[0].equals("update")) {
+                    try {
+                        int x = Integer.parseInt(args[1]);
+                        int y = Integer.parseInt(args[2]);
+                        if (Player2IsWhite() && turnToBlack) {
+                            updateTo1(x, y);
+                            return;
+                        }
+                        if (data[x][y] != EMPTY) {
+                            updateTo1(x, y);
+                            return;
+                        }
+                        steps++;
+                        Room.this.data[x][y] = Player2Color();
+                        update(x, y);
+                        turnToBlack = !turnToBlack;
+                        broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
+                        checkWin(x, y, data[x][y]);
+                    } catch (NumberFormatException ex) {
                         return;
                     }
-                    steps++;
-                    Room.this.data[x][y] = Player2Color();
-                    update(x, y);
-                    turnToBlack = !turnToBlack;
-                    broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
-                    checkWin(x, y, data[x][y]);
-                } catch (NumberFormatException ex) {
-                    return;
+                }else if (args[0].equals("status")) {
+                    broadcast(message);
+                } else if(args[0].equals("chat")){
+                    broadcast(message);
                 }
             }
         }
@@ -362,10 +372,10 @@ public class Room extends Beans {
     public void broadcast(String message) {
         sendToPlayer1(message);
         sendToPlayer2(message);
-        for (Session session : spectators) {
-            if (checkOpen(session)) {
+        for (User user : spectators) {
+            if (checkOpen(user)) {
                 try {
-                    session.getBasicRemote().sendText(message);
+                    user.getBasicRemote().sendText(message);
                 } catch (IOException ex) {
                 }
             }
@@ -431,13 +441,13 @@ public class Room extends Beans {
                 }
             });
         }
-        for (final Session session : spectators) {
-            if (checkOpen(session)) {
-                session.getAsyncRemote().sendText("closesocket", new SendHandler() {
+        for (final User player : spectators) {
+            if (checkOpen(player)) {
+                player.getAsyncRemote().sendText("closesocket", new SendHandler() {
                     @Override
                     public void onResult(SendResult result) {
                         try {
-                            session.close(NORMAL_CLOSE);
+                            player.close(NORMAL_CLOSE);
                         } catch (IOException ex) {
                         }
                     }
