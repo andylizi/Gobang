@@ -19,9 +19,9 @@
     <input type="password" id="r_password" name="password" placeholder="Password" size="28" autocomplete="off"/>
     <br/>
     <input type="text" id="r_vcode" name="vcode" placeholder="Validate Code" size="13"  style="margin: 10px 0;" autocomplete="off"/><img src="validatecode.sl" id="vcode" style="cursor:pointer;" onclick="this.src='validatecode.sl?'+Math.random();"/>
-    <span id="r_btn_register" class="button disabled" style="background: #323a45; margin: 0 auto; margin-bottom: 5px;display: block;width: 254px;">Register</span>
+    <div id="r_btn_register" class="button disabled" style="background: #323a45; margin: 0 auto; margin-bottom: 5px;display: block;width: 254px;">Register</div>
 </form>
-<span id="r_btn_login" class="flat_button" style="color: #00BCD4">Login</span>
+<span id="r_btn_login" class="flat_button" style="color: #00BCD4;margin-top: 10px;">Login</span>
 <script reload="1">
     $("#r_username,#r_password").keyup(function (e) {
         if ($("#r_username").val() && $("#r_password").val())

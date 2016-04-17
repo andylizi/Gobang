@@ -31,7 +31,7 @@
     <br/>
     <span id="l_btn_login" class="button disabled" style="background: #323a45; margin: 0 auto; margin-bottom: 5px;display: block;width: 254px;">Login</span>
 </form>
-<span id="l_btn_register" class="flat_button" style="color: #00BCD4">Register</span>
+<div id="l_btn_register" class="flat_button" style="color: #00BCD4;margin-top: 10px;">Register</div>
 <script reload="1">
     $("#actions").slideUp("slow");
     $("#l_username,#l_password").keyup(function (e) {

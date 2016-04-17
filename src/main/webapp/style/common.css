@@ -44,25 +44,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 }
 .flat_button{
     text-align: center;
-    display: block;
+    text-transform: uppercase;
     max-width: 140px;
     cursor: pointer;
     margin: 0 auto;
-    margin-top: 10px;
     padding: 8px 25px;
     border: none;
-    background: none;
+    background: none !important;
     background-clip: border-box;
     border-radius: 3px;
     box-sizing: border-box;
     transition: background .3s ease;
     -webkit-transition: background .3s ease;
+    color: #03A9F4;
 }
 .flat_button:hover{
-    background: rgba(0,0,0,.15);
+    background: rgba(0,0,0,.15) !important;
 }
 input[type="text"],input[type="password"]{
-    
     padding: 8px 2px;
     -webkit-tap-highlight-color: rgba(0,0,0,0);
     border: none;

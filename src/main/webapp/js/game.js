@@ -37,13 +37,13 @@ function onMessage(evt) {
                 "<a class='can_select_text' href='" + location.href + "' onclick='return false;'>" + location.href + "</a><p>\n\
                 The game will be started once any player joined the game.</p>\n\
                 <p>Room id: <span class='can_select_text' style='color:#009688;'>" + args[1] + "</span></p>\n\
-                <span class='button' style='background-color: #00D437;margin-left: 30px;' id='btn_cancel'>Cancel</span>");
+                <div class='flat_button' style='margin-right: 10px;' id='btn_cancel'>Cancel</div>");
         $("#btn_cancel").click(function () {
             location.href = "index.jsp";
         });
-        appendChat("Room "+args[1]+" Created");
+        appendChat("System: Room #"+args[1]+" created");
     } else if (args[0] == "start") {
-        appendChat("Game Started");
+        appendChat("System: Game started");
         hideMsgbox();
         started = true;
         $("#bar_white>.content,#bar_black>.content").html("Ready.");
@@ -97,25 +97,31 @@ function onMessage(evt) {
                 $("table").removeClass("turn");
             }
         }
-        $("#bar_white").toggleClass("bar_turn disable");
-        $("#bar_black").toggleClass("bar_turn disable");
         if (args[1] == "WHITE") {
-            $("#bar_white>.content").html("Holding...");
-            $("#bar_black>.content").html("Waiting...");
+            $("#bar_black").addClass("disable").removeClass("bar_turn").children(".content").html("Waiting...");
+            $("#bar_white").addClass("bar_turn").removeClass("disable").children(".content").html("Holding...");
         } else {
-            $("#bar_white>.content").html("Waiting...");
-            $("#bar_black>.content").html("Holding...");
+            $("#bar_white").addClass("disable").removeClass("bar_turn").children(".content").html("Waiting...");
+            $("#bar_black").addClass("bar_turn").removeClass("disable").children(".content").html("Holding...");
         }
     } else if (args[0] == "gameover") {
-        appendChat("Game Over: "+args[1]);
-        var canRestart = (args[1].indexOf("win") != -1);
-        showMsgbox("Game Over", args[1] + (canRestart ? "<br/><br/>\n\
-                <span class='button' style='background-color: #00D437;margin-left: 30px;margin-top: 10px;' id='btn_restart'>Restart</span>" : "<br/><br/>") + "\n\
-                <span class='button' style='background-color: #9c27b0;margin-left: 30px;margin-top: 10px;' id='btn_close'>Close</span>");
-        $("#btn_restart").click(function () {
-            appendChat("Game Restarted...");
-            hideMsgbox();
-        });
+        appendChat("System: Game over: "+args[1]);
+        if(spectator){
+            showMsgbox("Game Over", args[1] + 
+                    "<br/><br/><div class='flat_button' style='margin-right: 10px;' id='btn_ok'>OK</div>");
+            $("#btn_ok").click(function(){
+                hideMsgbox();
+            });
+        }else{
+            var canRestart = (args[1].indexOf("win") != -1);
+            showMsgbox("Game Over", args[1] + (canRestart ? "<br/><br/><div style='margin-right: 1px;'>\n\
+                <span class='flat_button' style='margin-right: 10px;' id='btn_restart'>Restart</span></div>" : "<br/><br/>") + "\n\
+                <div class='flat_button' style='margin-right: 10px;' id='btn_close'>Close</div>");
+            $("#btn_restart").click(function () {
+                appendChat("System: Game Restarted...");
+                hideMsgbox();
+            });
+        }
         $("table").removeClass("turn");
         $("#bar_white>.content").html("Game Over");
         $("#bar_black>.content").html("Game Over");
@@ -127,7 +133,7 @@ function onMessage(evt) {
         $(".chessiece").remove();
     } else if (args[0] == "closesocket") {
         socket.close();
-        appendChat("Connection closed");
+        appendChat("System: Connection closed");
     } else if (args[0] == "err") {
         $("#bar_" + (isWhite ? "white" : "black") + " .content").html("Error: " + args[1]);
         socket.send("status:" + (isWhite ? "white" : "black") + ":Error\: " + args[1]);
@@ -159,7 +165,7 @@ $(function () {
     }
     $("#txt_chat").keydown(function(e){
         if(this.value && e.keyCode == 13){
-            socket.send("chat:"+username+":"+this.value);
+            socket.send("chat:"+username+":"+this.value.replace(":","\:"));
             this.value = "";
         }
     });

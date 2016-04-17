@@ -8,7 +8,7 @@
     if ("create".equalsIgnoreCase(request.getQueryString())) {
         create = true;
     } else if ("closed".equalsIgnoreCase(request.getQueryString())) {
-        response.getWriter().write("<script>alert(\"This room have been over,please re-create one!\");location.href=\"index.jsp\";</script>");
+        response.sendRedirect("index.jsp");
     } else if (request.getQueryString() != null) {
         Room room = GameStorage.rooms.get(request.getQueryString().toString().toLowerCase());
         if (room == null) {
@@ -79,13 +79,12 @@
                 </div>
                 <div class="content">Waiting for join...</div>
             </div>
-            <div id="bar_chat">
+            <div id="bar_chat" class="can_select_text">
                 <div id="bar_chat_title">Chat</div>
                 <input type="text" id="txt_chat" placeholder="What do you want to say?"/>
                 <div id="bar_chat_content_wrapper">
                     <textarena id="bar_chat_content"></textarena>
                 </div>
-                <div id="bar_chat_mask"></div>
             </div>
         </div>
         <div id="mask" style="display:none;">

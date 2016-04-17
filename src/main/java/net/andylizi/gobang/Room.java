@@ -119,15 +119,17 @@ public class Room extends Beans {
         if (playing && checkOpen(player2)) {
             try {
                 spectators.add(player2);
-                player2.addMessageHandler(handler.new SpectatorHandler(player2.getName()));
-                player2.getBasicRemote().sendText("start:spectator");
+                player2.addMessageHandler(handler.new SpectatorHandler(player2));
+                RemoteEndpoint.Basic remote = player2.getBasicRemote();
+                remote.sendText("start:spectator");
                 updateAllMap(-1, true, player2.getBasicRemote());
-                player2.getBasicRemote().sendText("status:white:"+(turnToBlack ? "Waiting..." : "Holding..."));
-                player2.getBasicRemote().sendText("status:black:"+(turnToBlack ? "Holding..." : "Waiting..."));
-                player2.getBasicRemote().sendText("join:white:"+(player1IsWhite ? player1.getName() : player2.getName()));
-                player2.getBasicRemote().sendText("join:black:"+(!player1IsWhite ? player1.getName() : player2.getName()));
+                remote.sendText("status:white:"+(turnToBlack ? "Waiting..." : "Holding..."));
+                remote.sendText("status:black:"+(turnToBlack ? "Holding..." : "Waiting..."));
+                remote.sendText("join:white:"+(player1IsWhite ? player1.getName() : this.player2.getName()));
+                remote.sendText("join:black:"+(!player1IsWhite ? player1.getName() : this.player2.getName()));
                 broadcast("join:spectator:"+player2.getName());
             } catch (IOException ex) {
+                spectators.remove(player2);
             }
             return;
         }
@@ -282,17 +284,27 @@ public class Room extends Beans {
             return args;
         }
         private class SpectatorHandler implements MessageHandler.Whole<String>{
+            private User user;
             private String name;
 
-            public SpectatorHandler(String name) {
-                this.name = name;
+            public SpectatorHandler(User user) {
+                this.user = user;
+                this.name = user.getName();
             }
             
             @OnMessage
             @Override
             public void onMessage(String message) {
                 if(message.startsWith("chat:")){
-                    broadcast(message);
+                    String[] args = tokenizerMessage(message);
+                    if(args[2].length() > 50){
+                        try {
+                            user.getBasicRemote().sendText("chat:System:Too long!");
+                        } catch (IOException ex) {
+                        }
+                        return;
+                    }
+                    broadcast(args[0]+":[S]"+args[1]+":"+args[2]);
                 }
             }
             
@@ -328,7 +340,14 @@ public class Room extends Beans {
                 } else if (args[0].equals("status")) {
                     broadcast(message);
                 } else if(args[0].equals("chat")){
-                    broadcast(message);
+                    if(args[2].length() > 50){
+                        try {
+                            player1.getBasicRemote().sendText("chat:System:Too long!");
+                        } catch (IOException ex) {
+                        }
+                        return;
+                    }
+                    broadcast(args[0]+':'+(player1IsWhite ? "[W]" : "[B]") + args[1] + ":" + args[2]);
                 }
             }
         }
@@ -344,11 +363,11 @@ public class Room extends Beans {
                         int x = Integer.parseInt(args[1]);
                         int y = Integer.parseInt(args[2]);
                         if (Player2IsWhite() && turnToBlack) {
-                            updateTo1(x, y);
+                            updateTo2(x, y);
                             return;
                         }
                         if (data[x][y] != EMPTY) {
-                            updateTo1(x, y);
+                            updateTo2(x, y);
                             return;
                         }
                         steps++;
@@ -363,7 +382,14 @@ public class Room extends Beans {
                 }else if (args[0].equals("status")) {
                     broadcast(message);
                 } else if(args[0].equals("chat")){
-                    broadcast(message);
+                    if(args[2].length() > 50){
+                        try {
+                            player2.getBasicRemote().sendText("chat:System:Too long!");
+                        } catch (IOException ex) {
+                        }
+                        return;
+                    }
+                    broadcast(args[0]+':'+(!player1IsWhite ? "[W]" : "[B]") + args[1] + ":" + args[2]);
                 }
             }
         }
