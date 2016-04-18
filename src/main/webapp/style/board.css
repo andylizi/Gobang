@@ -14,8 +14,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+body{
+    overflow-x: hidden;
+}
 table{
-    margin-left: 30%;
+    margin-left: 400px;
     border-radius: 5px;
     background: #00897b;
     background-clip: border-box;
@@ -163,29 +166,52 @@ td .chessiece.last:hover{
 #txt_chat{
     width: 99%;
 }
-#mask{
-    position: absolute;
-    z-index: 255;
-    top: 0;
-    left: 0;
-    min-width: 100%;
-    min-height: 100%;
-    background: rgba(0,0,0,0.5);
-}
-#mask #msgbox{
-    color: black;
-    background: white;
-    border-radius: 5px;
-    z-index: 99999;
-    margin: 0 auto;
-    width: 400px;
-    padding: 20px 20px;
-}
 a{
     color: #3f51b5;
 }
-#mask #msgbox #msgbox_title,#bar_chat_title{
-    font-weight: bolder;
-    border-bottom: 1px #D8D8D8 solid;
-    margin-bottom: 10px;
+
+#fbtn_close{
+    position: absolute;
+    bottom: 150px;
+    left: 1160px;
 }
+#fbtn_close svg{
+    transition:All 1s ease;
+    -webkit-transition:All 1s ease;
+    -moz-transition:All 1s ease;
+    -o-transition:All 1s ease;
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+}
+#fbtn_close:hover svg{
+    transform: rotate(-315deg);
+    -webkit-transform: rotate(-315deg);
+    -moz-transform: rotate(-315deg);
+    -o-transform: rotate(-315deg);
+    -ms-transform: rotate(-315deg);
+}
+#fbtn_undo{
+    position: absolute;
+    bottom: 60px;
+    left: 1160px;
+}
+#fbtn_undo img{
+    width: 18px;
+    height: 18px;
+    padding: 16px;
+    transition:All .8s ease;
+    -webkit-transition:All .8s ease;
+    -moz-transition:All .8s ease;
+    -o-transition:All .8s ease;
+}
+#fbtn_undo:hover img{
+    transform: rotate(-360deg);
+    -webkit-transform: rotate(-360deg);
+    -moz-transform: rotate(-360deg);
+    -o-transform: rotate(-360deg);
+    -ms-transform: rotate(-360deg);
+}
+

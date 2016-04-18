@@ -51,7 +51,8 @@ public class StatusEndPoint extends Endpoint {
                             builder.append("\"playing\":").append(room.isPlaying()).append(',');
                             builder.append("\"rounds\":").append(room.getRounds()).append(',');
                             builder.append("\"steps\":").append(room.getSteps()).append(',');
-                            builder.append("\"watchers\":").append(room.getSpectators().size());
+                            builder.append("\"watchers\":").append(room.getSpectators().size()).append(',');
+                            builder.append("\"owner\":\"").append(room.getPlayer1().getName()).append('\"');
                             builder.append('}');
                             if (i != rooms.length - 1) {
                                 builder.append(',');

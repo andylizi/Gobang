@@ -14,211 +14,303 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-new Image().src = "image/white.png";
-new Image().src = "image/black.png";
-var isWhite = false;
-var started = false;
-var spectator = false;
-var turn = false;
-var msgboxOpened = false;
-var socket = new Socket();
-var msgs = new Array();
-function onConnected() {
-    console.log("Connected");
-    $("#bar_white .content").html("Ready.");
-}
-function onMessage(evt) {
-    console.log("Server: " + evt.data);
-    var args = evt.data.split(":");
-    if (args[0] == "room") {
-        if (create)
-            window.history.pushState({}, 0, location.href.replace("?create", "?" + args[1]));
-        showMsgbox("Waiting for join...", "<p>To invite a player, give the following URL:</p>" +
-                "<a class='can_select_text' href='" + location.href + "' onclick='return false;'>" + location.href + "</a><p>\n\
+(function ($) {
+    new Image().src = "image/white.png";
+    new Image().src = "image/black.png";
+    var isWhite = false;
+    var started = false;
+    var spectator = false;
+    var turn = false;
+    var socket = new Socket();
+    var msgBuffer = new Array();
+    var Dialog = new window.Dialog(function () {
+        while (msgBuffer.length != 0)
+            msgBuffer.pop();
+        socket.close();
+        Dialog.hideDialog();
+        $("#fbtn_close").fadeIn("slow");
+    }, function () {
+        while (msgBuffer.length != 0)
+            msgBuffer.pop();
+        socket.close();
+        location.href = "index.jsp";
+    }, function () {
+        while (msgBuffer.length != 0) {
+            var e = msgBuffer.shift();
+            listener.onMessage(e);
+            console.log("Pop message: " + e.data);
+        }
+    });
+    var listener = {
+        onConnected: function () {
+            console.log("Connected");
+            $("#bar_white .content").html("Ready.");
+        },
+        onMessage: function (evt) {
+            var args = evt.data.split(":");
+            console.log("Server: " + evt.data);
+            if (args[0] == "room") {
+                roomId = args[1];
+                if (create)
+                    window.history.pushState({}, 0, location.href.replace(/\?\w+$/, "") + "?" + args[1]);
+                Dialog.showDialog("Waiting for join...", "<p>To invite a player, give the following URL:</p>" +
+                        "<a class='can_select_text' href='" + location.href + "' onclick='return false;'>" + location.href + "</a><p>\n\
                 The game will be started once any player joined the game.</p>\n\
-                <p>Room id: <span class='can_select_text' style='color:#009688;'>" + args[1] + "</span></p>\n\
-                <div class='flat_button' style='margin-right: 10px;' id='btn_cancel'>Cancel</div>");
-        $("#btn_cancel").click(function () {
+                <p>Room id: <span class='can_select_text' style='color:#009688;'>" + args[1] + "</span></p>",
+                        "<button class='flat_button' style='margin-right: 10px;color: #FF4081;' id='btn_cancel'>Cancel</button>",
+                        function(){
+                            $("#btn_cancel").click(function () {
+                    location.href = "index.jsp";
+                });
+                        });
+                appendChat("System: Room #" + args[1] + " created");
+                document.title = "Gobang - #" + args[1];
+            } else if (args[0] == "start") {
+                if (!create) {
+                    window.history.pushState({}, 0, location.href.replace(/\?\w+$/, "") + "?" + roomId);
+                }
+                appendChat("System: Game started");
+                Dialog.hideDialog();
+                started = true;
+                $("#bar_white>.content,#bar_black>.content").html("Ready.");
+                isWhite = args[1] == "white";
+                spectator = args[1] == "spectator";
+                if (spectator) {
+                    $("#fbtn_undo").hide();
+                }
+                if (isWhite) {
+                    $("#bar_white").addClass("you");
+                    $("#white_name").html(" - " + username);
+                } else if (!spectator) {
+                    $("#bar_black").addClass("you");
+                    $("#black_name").html(" - " + username);
+                }
+                turn = isWhite;
+                if (turn) {
+                    $("table").addClass("turn");
+                } else {
+                    $("table").removeClass("turn");
+                }
+                setTurn(turn);
+                $("#bar_white").addClass("bar_turn");
+                $("#bar_white").removeClass("disable");
+                $("#bar_black").addClass("disable");
+                $("#bar_black").removeClass("bar_turn");
+                $("td").click(function () {
+                    if (!turn) {
+                        return;
+                    }
+                    var e = $(this);
+                    var pos = e.attr("id").split("_");
+                    socket.send("update:" + pos[1] + ":" + pos[2] + ":" + (isWhite ? 2 : 1));
+                });
+            } else if (args[0] == "join") {
+                if (args[1] == "spectator") {
+                    appendChat(args[2] + " join the room as a spectator...");
+                    return;
+                }
+                if (!spectator)
+                    appendChat(args[2] + " join the room as " + args[1] + "...");
+                $("#" + args[1] + "_name").html(" - " + args[2]);
+            } else if (args[0] == "update") {
+                if (buffer(evt))
+                    return;
+                setColor(args[1], args[2], args[3]);
+            } else if (args[0] == "turn") {
+                if (buffer(evt))
+                    return;
+                turn = (isWhite ? args[1] == "WHITE" : args[1] == "BLACK");
+                if (!spectator) {
+                    if (turn) {
+                        $("table").addClass("turn");
+                    } else {
+                        $("table").removeClass("turn");
+                    }
+                    setTurn(turn);
+                    $("#fbtn_undo").prop("disabled",turn);
+                }
+                if (args[1] == "WHITE") {
+                    $("#bar_black").addClass("disable").removeClass("bar_turn").children(".content").html("Waiting...");
+                    $("#bar_white").addClass("bar_turn").removeClass("disable").children(".content").html("Holding...");
+                } else {
+                    $("#bar_white").addClass("disable").removeClass("bar_turn").children(".content").html("Waiting...");
+                    $("#bar_black").addClass("bar_turn").removeClass("disable").children(".content").html("Holding...");
+                }
+            } else if (args[0] == "undo") {
+                if (args[1] == "request") {
+                    if (spectator) {
+                        Dialog.makeToast(args[2].replace(/(\w)/,function(v){return v.toUpperCase();}) + " requests to undo one step");
+                        return;
+                    }
+                    if ((args[2] == "white" && isWhite) || (args[2] == "black" && !isWhite)) {
+                        Dialog.makeToast("Undo request has been issued");
+                        return;
+                    }
+                    var fdisabled = $("#fbtn_undo").prop("disabled");
+                    $("#fbtn_undo").prop("disabled",true);
+                    Dialog.showDialog("Undo request", args[2].replace(/(\w)/,function(v){return v.toUpperCase();}) + " requests to undo one step",
+                            "<button class='flat_button' style='margin-right: 10px;color: #FF4081;' id='btn_deny'>Deny</button>\n\
+                        <button class='flat_button' style='margin-right: 10px;' id='btn_accept'>Accept</button>",
+                            function () {
+                                $("#btn_accept").click(function(){
+                                    Dialog.hideDialog();
+                                    socket.send("undo:accept");
+                                    $("#fbtn_undo").prop("disabled",fdisabled);
+                                });
+                                $("#btn_deny").click(function(){
+                                    Dialog.hideDialog();
+                                    socket.send("undo:deny");
+                                    $("#fbtn_undo").prop("disabled",fdisabled);
+                                });
+                            });
+                }else if(args[1] == "accept"){
+                    if(spectator){
+                        Dialog.makeToast((args[2] == "White" ? "Black" : "White") + " accepted "+ args[2] +"'s undo requst");
+                    }else{
+                        Dialog.makeToast((isWhite ? "Black":"White") + " accepted your undo requst");
+                    }
+                }else if(args[1] == "deny"){
+                    if(spectator){
+                        Dialog.makeToast((args[2] == "White" ? "Black" : "White") + " denied "+ args[2] +"'s undo requst");
+                    }else{
+                        Dialog.makeToast((isWhite ? "Black":"White") + " denied your undo requst");
+                    }
+                }
+            } else if (args[0] == "gameover") {
+                appendChat("System: Game over: " + args[1]);
+                if (spectator) {
+                    Dialog.showDialog("Game Over", args[1], "<button class='flat_button' style='margin-right: 10px;' id='btn_ok'>OK</button>");
+                    $("#btn_ok").click(function () {
+                        Dialog.hideDialog();
+                    });
+                } else {
+                    var canRestart = (args[1].indexOf("win") != -1);
+                    Dialog.showDialog("Game Over", args[1], "\
+                <button class='flat_button' style='margin-right: 10px;display: inline;color: #FF4081;' id='btn_close'>Close</button>\n\
+                <button class='flat_button' style='margin-right: 10px;display: inline;color: #FF4081;' id='btn_back'>Back</button>" + (canRestart ?
+                            "<button class='flat_button' style='margin-right: 10px;display: inline;' id='btn_restart'>Restart</button>" : ""),
+                            function () {
+                                $("#btn_restart").click(function () {
+                                    appendChat("System: Game restarted...");
+                                    Dialog.hideDialog();
+                                });
+                            });
+                }
+                $("table").removeClass("turn");
+                $("#bar_white>.content").html("Game Over");
+                $("#bar_black>.content").html("Game Over");
+                setTurn(false);
+            } else if (args[0] == "clear") {
+                if (buffer(evt))
+                    return;
+                $(".chessiece").remove();
+                $("#fbtn_undo").prop("disabled",true);
+            } else if (args[0] == "closesocket") {
+                socket.close();
+                appendChat("System: Connection closed");
+                setTurn(false);
+            } else if (args[0] == "err") {
+                $("#bar_" + (isWhite ? "white" : "black") + " .content").html("Error: " + args[1]);
+                socket.send("status:" + (isWhite ? "white" : "black") + ":Error\: " + args[1]);
+            } else if (args[0] == "status") {
+                if (buffer(evt))
+                    return;
+                $("#bar_" + args[1] + " .content").html(args[2]);
+            } else if (args[0] == "chat") {
+                var msg = args[2];
+                for (var i = 3; i < args.length; i++) {
+                    msg += ":" + args[i];
+                }
+                appendChat(args[1] + ": " + msg);
+            } else {
+                alert("Unknown message: \r\n" + evt.data);
+            }
+        },
+        onError: function () {
+            Dialog.showDialog("Error", err);
+        },
+        onClose: function () {
+            $("#fbtn_close").fadeIn("slow");
+            $("#fbtn_undo").prop("disabled",true);
+            window.history.pushState({}, 0, location.href.replace(/\?\w+$/, "?closed"));
+            $("#bar_black,#bar_white").addClass("disable");
+            if (started) {
+                $("#bar_white>.content,#bar_black>.content").html("Socket Closed");
+                started = false;
+            }
+            turn = false;
+            setTurn(false);
+        }
+    };
+    function buffer(evt) {
+        if (Dialog.isOpened()) {
+            msgBuffer.push(evt);
+            console.log("Buffer: " + evt.data);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    function setColor(x, y, c) {
+        $(".last").removeClass("last");
+        var e = $("#row_" + x + "_" + y);
+        if (c == 0) { //EMPTY
+            e.empty();
+        } else if (c == 1) {  //BLACK
+            $("#fbtn_undo").prop("disabled",isWhite);
+            e.html("<span class='chessiece black'>&nbsp;</span>").children("span").addClass("last");
+        } else if (c == 2) {  //WHITE
+            $("#fbtn_undo").prop("disabled",!isWhite);
+            e.html("<span class='chessiece white'>&nbsp;</span>").children("span").addClass("last");
+        }
+    }
+    function appendChat(msg) {
+        $("#bar_chat_content").prepend(htmlEncode(msg) + "<br/>");
+    }
+    function setTurn(t) {
+        if (t) {
+            document.title = "[Turn]" + document.title.replace("[Turn]", "");
+        } else {
+            document.title = document.title.replace("[Turn]", "");
+        }
+    }
+    function htmlEncode(str) {
+        var div = document.createElement("div");
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+    $(function () {
+        $("#board").fadeIn("slow", function () {
+            $("#gear").css("right", "-38px").click(function () {
+                $(this).animate({
+                    opacity: "0",
+                    right: "-60px"
+                }, "slow");
+            });
+        });
+        appendChat("System: Connecting to server...");
+        var socketurl = location.href.replace(/^\w+:/, "ws:").replace("game.jsp", "socket").replace("?create", "");
+        if (!socket) {
+            location.href = "index.jsp";
+        } else {
+            socket.connect(socketurl, listener.onConnected, listener.onMessage, listener.onError, listener.onClose);
+        }
+        $("#txt_chat").keydown(function (e) {
+            if (this.value && e.keyCode == 13) {
+                socket.send("chat:" + username + ":" + this.value.replace(":", "\\:"));
+                this.value = "";
+            }
+        });
+        $("#fbtn_close").click(function (e) {
             location.href = "index.jsp";
         });
-        appendChat("System: Room #"+args[1]+" created");
-    } else if (args[0] == "start") {
-        appendChat("System: Game started");
-        hideMsgbox();
-        started = true;
-        $("#bar_white>.content,#bar_black>.content").html("Ready.");
-        isWhite = args[1] == "white";
-        spectator = args[1] == "spectator";
-        if (isWhite) {
-            $("#bar_white").addClass("you");
-            $("#white_name").html(" - " + username);
-        } else if (!spectator) {
-            $("#bar_black").addClass("you");
-            $("#black_name").html(" - " + username);
-        }
-        turn = isWhite;
-        if (turn) {
-            $("table").addClass("turn");
-        } else {
-            $("table").removeClass("turn");
-        }
-        $("#bar_white").addClass("bar_turn");
-        $("#bar_white").removeClass("disable");
-        $("#bar_black").addClass("disable");
-        $("#bar_black").removeClass("bar_turn");
-        $("td").click(function () {
-            if (!turn) {
+        $("#fbtn_undo").click(function (e) {
+            if (turn || !started) {
+                $(this).fadeOut("fast");
                 return;
             }
-            var e = $(this);
-            var pos = e.attr("id").split("_");
-            socket.send("update:" + pos[1] + ":" + pos[2] + ":" + (isWhite ? 2 : 1));
+            socket.send("undo:request");
+            $(this).prop("disabled",true);
         });
-    } else if (args[0] == "join") {
-        if (args[1] == "spectator") {
-            appendChat(args[2]+" join the room as a spectator...");
-            return;
-        }
-        if(!spectator)
-            appendChat(args[2]+" join the room as "+args[1]+"...");
-        $("#" + args[1] + "_name").html(" - " + args[2]);
-    } else if (args[0] == "update") {
-        setColor(args[1], args[2], args[3]);
-    } else if (args[0] == "turn") {
-        if (msgboxOpened) {
-            msgs.push(evt);
-            return;
-        }
-        turn = (isWhite ? args[1] == "WHITE" : args[1] == "BLACK");
-        if (!spectator) {
-            if (turn) {
-                $("table").addClass("turn");
-            } else {
-                $("table").removeClass("turn");
-            }
-        }
-        if (args[1] == "WHITE") {
-            $("#bar_black").addClass("disable").removeClass("bar_turn").children(".content").html("Waiting...");
-            $("#bar_white").addClass("bar_turn").removeClass("disable").children(".content").html("Holding...");
-        } else {
-            $("#bar_white").addClass("disable").removeClass("bar_turn").children(".content").html("Waiting...");
-            $("#bar_black").addClass("bar_turn").removeClass("disable").children(".content").html("Holding...");
-        }
-    } else if (args[0] == "gameover") {
-        appendChat("System: Game over: "+args[1]);
-        if(spectator){
-            showMsgbox("Game Over", args[1] + 
-                    "<br/><br/><div class='flat_button' style='margin-right: 10px;' id='btn_ok'>OK</div>");
-            $("#btn_ok").click(function(){
-                hideMsgbox();
-            });
-        }else{
-            var canRestart = (args[1].indexOf("win") != -1);
-            showMsgbox("Game Over", args[1] + (canRestart ? "<br/><br/><div style='margin-right: 1px;'>\n\
-                <span class='flat_button' style='margin-right: 10px;' id='btn_restart'>Restart</span></div>" : "<br/><br/>") + "\n\
-                <div class='flat_button' style='margin-right: 10px;' id='btn_close'>Close</div>");
-            $("#btn_restart").click(function () {
-                appendChat("System: Game Restarted...");
-                hideMsgbox();
-            });
-        }
-        $("table").removeClass("turn");
-        $("#bar_white>.content").html("Game Over");
-        $("#bar_black>.content").html("Game Over");
-    } else if (args[0] == "clear") {
-        if (msgboxOpened) {
-            msgs.push(evt);
-            return;
-        }
-        $(".chessiece").remove();
-    } else if (args[0] == "closesocket") {
-        socket.close();
-        appendChat("System: Connection closed");
-    } else if (args[0] == "err") {
-        $("#bar_" + (isWhite ? "white" : "black") + " .content").html("Error: " + args[1]);
-        socket.send("status:" + (isWhite ? "white" : "black") + ":Error\: " + args[1]);
-    } else if (args[0] == "status") {
-        $("#bar_" + args[1] + " .content").html(args[2]);
-    } else if(args[0] == "chat"){
-        appendChat(args[1]+": "+args[2]);
-    } else {
-        alert(evt.data);
-    }
-}
-function onError(err) {
-    showMsgbox("Error", err);
-}
-function onClose() {
-    window.history.pushState({}, 0, location.href.replace(/\?\w+$/, "?closed"));
-    $("#bar_black,#bar_white").addClass("disable");
-    if (started) {
-        $("#bar_white>.content,#bar_black>.content").html("Socket Closed");
-        started = false;
-    }
-}
-$(function () {
-    var socketurl = location.href.replace(/^\w+:/, "ws:").replace("game.jsp", "socket").replace("?create", "");
-    if (!socket) {
-        location.href = "index.jsp";
-    } else {
-        socket.connect(socketurl, onConnected, onMessage, onError, onClose);
-    }
-    $("#txt_chat").keydown(function(e){
-        if(this.value && e.keyCode == 13){
-            socket.send("chat:"+username+":"+this.value.replace(":","\:"));
-            this.value = "";
-        }
     });
-});
-function setColor(x, y, c) {
-    $(".last").removeClass("last");
-    var e = $("#row_" + x + "_" + y);
-    if (c == 0) { //EMPTY
-        e.empty();
-    } else if (c == 1) {  //BLACK
-        e.html("<span class='chessiece black'>&nbsp;</span>").children("span").addClass("last");
-    } else if (c == 2) {  //WHITE
-        e.html("<span class='chessiece white'>&nbsp;</span>").children("span").addClass("last");
-    }
-}
-var msgsQueue = new Array();
-function showMsgbox(title, content) {
-    if (msgboxOpened) {
-        msgsQueue.push({"title": title, "content": content});
-        return;
-    }
-    msgboxOpened = true;
-    $("#msgbox_title").html(title);
-    $("#msgbox_content").html(content);
-    $("#mask").hide().fadeIn("fast");
-    $("#msgbox").show().animate({
-        "margin-top": "50px",
-        "opacity": 1
-    }, "fast");
-    $("#btn_close").click(function () {
-        while(msgs.length != 0) msgs.pop();
-        socket.close();
-        hideMsgbox();
-    });
-}
-function hideMsgbox() {
-    msgboxOpened = false;
-    $("#mask").fadeOut("fast");
-    $("#msgbox").show().animate({
-        "margin-top": "0px",
-        "opacity": 0
-    }, "fast", "swing", function () {
-        $(this).css("display", "none");
-        if (msgsQueue.length != 0) {
-            var task = msgsQueue.shift();
-            showMsgbox(task.title, task.content);
-            return;
-        }
-        while (msgs.length != 0) {
-            onMessage(msgs.shift());
-        }
-    });
-}
-function appendChat(msg){
-    $("#bar_chat_content").prepend(msg+"<br/>");
-}
+})(window.jQuery);

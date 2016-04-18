@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(function () {
+    $(".button").append('<span class="button_mask"></span>');
     $.get("ajax/init.jsp");
     $("#title").css("background-image", "url('image/bgs/" + parseInt(Math.random() * 6) + ".svg')");
     $("#main").css({
@@ -83,7 +84,7 @@ function showJoin() {
         location.hash = "";
         $(this).fadeOut("normal", function () {
             setTimeout(function () {
-                $("#btn_join").removeClass("disabled");
+                $("#btn_join")[0].disabled = false;
                 setTimeout(function () {
                     $("#btn_create").css("visibility", "visible").fadeIn("slow");
                 }, 200);
@@ -101,17 +102,15 @@ function showJoin() {
         });
     });
     if(!$("#txt_join").val())
-        $("#btn_join").addClass("disabled");
+        $("#btn_join")[0].disabled = true;
     setTimeout(function () {
         $("#txt_join").animate({
             width: "150px"
         }, "slow", "swing", function () {
             this.focus();
         }).keyup(function (e) {
-            if (this.value)
-                $("#btn_join").removeClass("disabled");
-            else{
-                $("#btn_join").addClass("disabled");
+            $("#btn_join")[0].disabled = !this.value;
+            if (!this.value){
                 return;
             }
             if(e.keyCode == 13){
@@ -126,7 +125,7 @@ function showJoin() {
             return;
         }
         $("#btn_join").val("Loading...");
-        $.get("join.jsp?" + val, function (data) {
+        $.get("ajax/join.jsp?" + val, function (data) {
             if (parseInt(data) == 1) {
                 location.href = "game.jsp?" + val;
             } else {
@@ -176,8 +175,8 @@ function initStatusSocket(connectCount) {
             return;
         }
         $.each($.parseJSON(evt.data), function (id, v) {
-            list.append("<li>Room - <span class='id'>" + id + "</span>&nbsp;&nbsp;<span class='" + (v.playing ? "playing" : "waiting") + "'>" +
-                    (v.playing ? "Playing" : "Waiting") + "</span>&nbsp;\n\
+            list.append("<li>Room <span class='id'>#" + id + "</span>&nbsp;"+v.owner+"&nbsp;&nbsp;<span class='" + (v.playing ? "playing" : "waiting") + "'>[" +
+                    (v.playing ? "Playing" : "Waiting") + "]</span>&nbsp;\n\
                                     Rounds: " + v.rounds + "&nbsp;&nbsp;\n\
                                     Steps: " + v.steps + "&nbsp;&nbsp;\n\
                                     Watchers: " + v.watchers + "&nbsp;&nbsp;&nbsp;&nbsp;<a href='game.jsp?" + id + "'>[" + (v.playing ? "Watch" : "Join") + "]</a></li>");

@@ -5,10 +5,12 @@
         <title>Gobang</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="shortcut icon" href="image/favicon.ico" type="image/x-icon" />
         <link href="style/normalize.css" rel="stylesheet" type="text/css">
         <link href="style/common.css" rel="stylesheet" type="text/css">
         <link href="style/index.css" rel="stylesheet" type="text/css">
-        <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+        <!--<script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js" onerror="document.write('<script src=js/lib/jquery.js>&lt;/script&gt;');"></script>-->
+        <script src="js/lib/jquery.js"></script>
         <script src="js/lib/hclass.js"></script>
         <script src="js/socket.js"></script>
         <script src="js/index.js"></script>
@@ -26,10 +28,10 @@
                     <div id="login" style="display: none;"></div>
                 </div>
                 <div id="actions">
-                    <span class="button" id="btn_create">Create Room</span>
+                    <button class="button" id="btn_create">Create</button>
                     <input type="text" id="txt_join" style="visibility: hidden;width:0px;margin-right:0px;margin-left:0px;" placeholder="Room ID" autocomplete="off" autofocus="on"/>
-                    <span class="button" style="background-color: #00bcd4;margin-left: 20px;" id="btn_join">Join Room</span>
-                    <span class="button" style="background-color: #00D437;display: none;margin-left: 10px;" id="btn_back">Back</span>
+                    <button class="button" style="background-color: #00bcd4;margin-left: 20px;" id="btn_join">Join</button>
+                    <button class="button" style="background-color: #00D437;display: none;margin-left: 10px;" id="btn_back">Back</button>
                     <div id="list" style="display:none;">
                         <ul>
                         </ul>

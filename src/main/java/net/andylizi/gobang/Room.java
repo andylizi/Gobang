@@ -36,6 +36,11 @@ public class Room extends Beans {
     private static final int EMPTY = 0;
     private static final int BLACK = 1;
     private static final int WHITE = 2;
+
+    private static final int NONE = 0;
+    private static final int PLAYER1 = 1;
+    private static final int PLAYER2 = 2;
+
     private static final Random random = new SecureRandom();
     private static final CloseReason NORMAL_CLOSE = new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "socketclose");
 
@@ -48,10 +53,14 @@ public class Room extends Beans {
     private boolean playing = false;
     private final boolean player1IsWhite;
 
+    private int undoRequest = 0;
     private boolean turnToBlack = false;
     private int steps = 0;
     private int rounds = 0;
     private int[][] data = new int[15][15];
+    
+    private int lastStepX = -1;
+    private int lastStepY = -1;
 
     public static Room newRoom(User owner) {
         StringBuilder builder = new StringBuilder(5);
@@ -123,19 +132,19 @@ public class Room extends Beans {
                 RemoteEndpoint.Basic remote = player2.getBasicRemote();
                 remote.sendText("start:spectator");
                 updateAllMap(-1, true, player2.getBasicRemote());
-                remote.sendText("status:white:"+(turnToBlack ? "Waiting..." : "Holding..."));
-                remote.sendText("status:black:"+(turnToBlack ? "Holding..." : "Waiting..."));
-                remote.sendText("join:white:"+(player1IsWhite ? player1.getName() : this.player2.getName()));
-                remote.sendText("join:black:"+(!player1IsWhite ? player1.getName() : this.player2.getName()));
-                broadcast("join:spectator:"+player2.getName());
+                remote.sendText("status:white:" + (turnToBlack ? "Waiting..." : "Holding..."));
+                remote.sendText("status:black:" + (turnToBlack ? "Holding..." : "Waiting..."));
+                remote.sendText("join:white:" + (player1IsWhite ? player1.getName() : this.player2.getName()));
+                remote.sendText("join:black:" + (!player1IsWhite ? player1.getName() : this.player2.getName()));
+                broadcast("join:spectator:" + player2.getName());
             } catch (IOException ex) {
                 spectators.remove(player2);
             }
             return;
         }
         this.player2 = player2;
-        broadcast("join:"+(player1IsWhite ? "black":"white")+":"+player2.getName());
-        sendToPlayer2("join:"+(player1IsWhite ? "white":"black")+":"+player1.getName());
+        broadcast("join:" + (player1IsWhite ? "black" : "white") + ":" + player2.getName());
+        sendToPlayer2("join:" + (player1IsWhite ? "white" : "black") + ":" + player1.getName());
         if (canStart()) {
             start(false);
         }
@@ -266,11 +275,13 @@ public class Room extends Beans {
     }
 
     private class Handler {
-        public Handler(){
-            
+
+        public Handler() {
+
         }
+
         private String[] tokenizerMessage(String message) {
-            StringTokenizer tokenizer = new StringTokenizer(message, ":");
+            StringTokenizer tokenizer = new StringTokenizer(message.replace("\\:", "▶卍"), ":");
             String[] args = new String[tokenizer.countTokens()];
             if (args.length == 0) {
                 System.out.println("error = 0");
@@ -278,12 +289,14 @@ public class Room extends Beans {
             }
             int i = 0;
             while (tokenizer.hasMoreTokens()) {
-                args[i++] = tokenizer.nextToken().replace("\\:", ":");
+                args[i++] = tokenizer.nextToken().replace("▶卍", ":");
             }
             tokenizer = null;
             return args;
         }
-        private class SpectatorHandler implements MessageHandler.Whole<String>{
+
+        private class SpectatorHandler implements MessageHandler.Whole<String> {
+
             private User user;
             private String name;
 
@@ -291,23 +304,23 @@ public class Room extends Beans {
                 this.user = user;
                 this.name = user.getName();
             }
-            
+
             @OnMessage
             @Override
             public void onMessage(String message) {
-                if(message.startsWith("chat:")){
+                if (message.startsWith("chat:")) {
                     String[] args = tokenizerMessage(message);
-                    if(args[2].length() > 50){
+                    if (args[2].length() > 50) {
                         try {
                             user.getBasicRemote().sendText("chat:System:Too long!");
                         } catch (IOException ex) {
                         }
                         return;
                     }
-                    broadcast(args[0]+":[S]"+args[1]+":"+args[2]);
+                    broadcast(args[0] + ":[S]" + args[1] + ":" + args[2]);
                 }
             }
-            
+
         }
 
         private class Player1Handler implements MessageHandler.Whole<String> {
@@ -315,39 +328,91 @@ public class Room extends Beans {
             @OnMessage
             @Override
             public void onMessage(String message) {
-                String[] args = tokenizerMessage(message);
-                if (args[0].equals("update")) {
-                    try {
-                        int x = Integer.parseInt(args[1]);
-                        int y = Integer.parseInt(args[2]);
-                        if (Player1IsWhite() && turnToBlack) {
-                            updateTo1(x, y);
-                            return;
-                        }
-                        if (data[x][y] != EMPTY) {
-                            updateTo1(x, y);
-                            return;
-                        }
-                        steps++;
-                        Room.this.data[x][y] = Player1Color();
-                        update(x, y);
-                        turnToBlack = !turnToBlack;
-                        broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
-                        checkWin(x, y, data[x][y]);
-                    } catch (NumberFormatException ex) {
-                        return;
+                try {
+                    String[] args = tokenizerMessage(message);
+                    switch (args[0]) {
+                        case "update":
+                            try {
+                                int x = Integer.parseInt(args[1]);
+                                int y = Integer.parseInt(args[2]);
+                                if (Player1IsWhite() && turnToBlack) {
+                                    updateTo1(x, y);
+                                    return;
+                                }
+                                if (data[x][y] != EMPTY) {
+                                    updateTo1(x, y);
+                                    return;
+                                }
+                                steps++;
+                                Room.this.data[x][y] = Player1Color();
+                                lastStepX = x;
+                                lastStepY = y;
+                                update(x, y);
+                                turnToBlack = !turnToBlack;
+                                broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
+                                checkWin(x, y, data[x][y]);
+                            } catch (NumberFormatException ex) {
+                                return;
+                            }
+                            break;
+                        case "status":
+                            broadcast(message);
+                            break;
+                        case "chat":
+                            if (args[2].length() > 50) {
+                                sendToPlayer1("chat:System:Too long!");
+                                return;
+                            }
+                            broadcast(args[0] + ':' + (player1IsWhite ? "[W]" : "[B]") + args[1] + ":" + args[2]);
+                            break;
+                        case "undo":
+                            switch (args[1]) {
+                                case "request":
+                                    if(!((player1IsWhite && turnToBlack) || (!player1IsWhite && !turnToBlack))){
+                                        return;
+                                    }
+                                    if (undoRequest != NONE) {
+                                        return;
+                                    }
+                                    if(lastStepX == -1 || lastStepY == -1){
+                                        return;
+                                    }
+                                    undoRequest = PLAYER1;
+                                    broadcast("chat:System:"+(player1IsWhite ? "White" : "Black")+" requests to undo one step");
+                                    broadcast("undo:request:"+(player1IsWhite ? "white" : "black"));
+                                    break;
+                                case "accept":
+                                    if(undoRequest != PLAYER2){
+                                        return;
+                                    }
+                                    if(lastStepX == -1 || lastStepY == -1){
+                                        return;
+                                    }
+                                    Room.this.data[lastStepX][lastStepY] = EMPTY;
+                                    update(lastStepX, lastStepY);
+                                    sendToPlayer2("undo:accept");
+                                    broadcast("chat:System:"+(!player1IsWhite ? "White" : "Black")+" undid one step...");
+                                    broadcastToSepctators("undo:accept:"+(!player1IsWhite ? "White" : "Black"));
+                                    undoRequest = NONE;
+                                    break;
+                                case "deny":
+                                    if(undoRequest != PLAYER2){
+                                        return;
+                                    }
+                                    if(lastStepX == -1 || lastStepY == -1){
+                                        return;
+                                    }
+                                    sendToPlayer2("undo:deny");
+                                    broadcast("chat:System:Undo denied...");
+                                    broadcastToSepctators("undo:deny:"+(!player1IsWhite ? "White" : "Black"));
+                                    undoRequest = NONE;
+                            }
+                            break;
+                        default:
+                            break;
                     }
-                } else if (args[0].equals("status")) {
-                    broadcast(message);
-                } else if(args[0].equals("chat")){
-                    if(args[2].length() > 50){
-                        try {
-                            player1.getBasicRemote().sendText("chat:System:Too long!");
-                        } catch (IOException ex) {
-                        }
-                        return;
-                    }
-                    broadcast(args[0]+':'+(player1IsWhite ? "[W]" : "[B]") + args[1] + ":" + args[2]);
+                } catch (IndexOutOfBoundsException ex) {
+                    //ignore
                 }
             }
         }
@@ -357,39 +422,89 @@ public class Room extends Beans {
             @OnMessage
             @Override
             public void onMessage(String message) {
-                String[] args = tokenizerMessage(message);
-                if (args[0].equals("update")) {
-                    try {
-                        int x = Integer.parseInt(args[1]);
-                        int y = Integer.parseInt(args[2]);
-                        if (Player2IsWhite() && turnToBlack) {
-                            updateTo2(x, y);
-                            return;
-                        }
-                        if (data[x][y] != EMPTY) {
-                            updateTo2(x, y);
-                            return;
-                        }
-                        steps++;
-                        Room.this.data[x][y] = Player2Color();
-                        update(x, y);
-                        turnToBlack = !turnToBlack;
-                        broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
-                        checkWin(x, y, data[x][y]);
-                    } catch (NumberFormatException ex) {
-                        return;
+                try {
+                    String[] args = tokenizerMessage(message);
+                    switch (args[0]) {
+                        case "update":
+                            try {
+                                int x = Integer.parseInt(args[1]);
+                                int y = Integer.parseInt(args[2]);
+                                if (Player2IsWhite() && turnToBlack) {
+                                    updateTo2(x, y);
+                                    return;
+                                }
+                                if (data[x][y] != EMPTY) {
+                                    updateTo2(x, y);
+                                    return;
+                                }
+                                steps++;
+                                Room.this.data[x][y] = Player2Color();
+                                lastStepX = x;
+                                lastStepY = y;
+                                update(x, y);
+                                turnToBlack = !turnToBlack;
+                                broadcast("turn:" + (turnToBlack ? "BLACK" : "WHITE"));
+                                checkWin(x, y, data[x][y]);
+                            } catch (NumberFormatException ex) {
+                                return;
+                            }   break;
+                        case "status":
+                            broadcast(message);
+                            break;
+                        case "chat":
+                            if (args[2].length() > 50) {
+                                sendToPlayer2("chat:System:Too long!");
+                                return;
+                            }   broadcast(args[0] + ':' + (!player1IsWhite ? "[W]" : "[B]") + args[1] + ":" + args[2]);
+                            break;
+                        case "undo":
+                            switch (args[1]) {
+                                case "request":
+                                    if((player1IsWhite && turnToBlack) || (!player1IsWhite && !turnToBlack)){
+                                        return;
+                                    }
+                                    if (undoRequest != NONE) {
+                                        return;
+                                    }
+                                    if(lastStepX == -1 || lastStepY == -1){
+                                        return;
+                                    }
+                                    undoRequest = PLAYER2;
+                                    broadcast("chat:System:"+(!player1IsWhite ? "White" : "Black")+" requests to undo one step");
+                                    broadcast("undo:request:"+(!player1IsWhite ? "white" : "black"));
+                                    break;
+                                case "accept":
+                                    if(undoRequest != PLAYER1){
+                                        return;
+                                    }
+                                    if(lastStepX == -1 || lastStepY == -1){
+                                        return;
+                                    }
+                                    Room.this.data[lastStepX][lastStepY] = EMPTY;
+                                    update(lastStepX, lastStepY);
+                                    sendToPlayer1("undo:accept");
+                                    broadcast("chat:System:"+(player1IsWhite ? "White" : "Black")+" undid one step...");
+                                    broadcastToSepctators("undo:accept:"+(player1IsWhite ? "White" : "Black"));
+                                    undoRequest = NONE;
+                                    break;
+                                case "deny":
+                                    if(undoRequest != PLAYER1){
+                                        return;
+                                    }
+                                    if(lastStepX == -1 || lastStepY == -1){
+                                        return;
+                                    }
+                                    sendToPlayer1("undo:deny");
+                                    broadcast("chat:System:Undo denied...");
+                                    broadcastToSepctators("undo:deny:"+(player1IsWhite ? "White" : "Black"));
+                                    undoRequest = NONE;
+                            }
+                            break;
+                        default:
+                            break;
                     }
-                }else if (args[0].equals("status")) {
-                    broadcast(message);
-                } else if(args[0].equals("chat")){
-                    if(args[2].length() > 50){
-                        try {
-                            player2.getBasicRemote().sendText("chat:System:Too long!");
-                        } catch (IOException ex) {
-                        }
-                        return;
-                    }
-                    broadcast(args[0]+':'+(!player1IsWhite ? "[W]" : "[B]") + args[1] + ":" + args[2]);
+                } catch (IndexOutOfBoundsException ex) {
+                    //ignore
                 }
             }
         }
@@ -398,14 +513,7 @@ public class Room extends Beans {
     public void broadcast(String message) {
         sendToPlayer1(message);
         sendToPlayer2(message);
-        for (User user : spectators) {
-            if (checkOpen(user)) {
-                try {
-                    user.getBasicRemote().sendText(message);
-                } catch (IOException ex) {
-                }
-            }
-        }
+        broadcastToSepctators(message);
     }
 
     public void sendToPlayer1(String message) {
@@ -422,6 +530,17 @@ public class Room extends Beans {
             try {
                 player2.getBasicRemote().sendText(message);
             } catch (IOException ex) {
+            }
+        }
+    }
+    
+    public void broadcastToSepctators(String message){
+        for (User user : spectators) {
+            if (checkOpen(user)) {
+                try {
+                    user.getBasicRemote().sendText(message);
+                } catch (IOException ex) {
+                }
             }
         }
     }

@@ -48,7 +48,7 @@ Class.extend = function(prop) {
         // All construction is actually done in the init method
         if ( !initializing && this.init )
             this.init.apply(this, arguments);
-    }
+    };
     
     // Populate our constructed prototype object
     Class.prototype = prototype;
@@ -64,5 +64,8 @@ Class.extend = function(prop) {
 
 if(!(typeof exports === 'undefined')) {
     exports.Class = Class;
+}
+if(!(typeof window === 'undefined')) {
+    window.Class = Class;
 }
 

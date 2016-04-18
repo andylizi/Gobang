@@ -14,52 +14,128 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+@import "../webfont/roboto-webfont.css";
 *{
     -moz-user-select: none;
     -o-user-select: none;
     -khtml-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
-    font: 16px/1.5 Tahoma,'Microsoft Yahei','Simsun';
+    /* font: 16px/1.5 'Microsoft Yahei', 'Tahoma'; */
+    font: 16px/1.5 'Roboto', 'sans-serif', 'Tahoma';
+    -webkit-tap-highlight-color: transparent;
 }
-.button,button{
+button{
+    outline: none;
+}
+.button_mask{
+    display: inline-block;
+    z-index: 100;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 3px;
+    transition: all .2s ease;
+    -webkit-transition: all .2s ease;
+}
+.button:enabled .button_mask:hover,.floating_button:enabled .button_mask:hover{
+    background: rgba(255,255,255,0.4);
+}
+.button{
+    position: relative;
+    text-transform: uppercase;
     text-align: center;
-    text-shadow: 0px 1px 3px rgba(0,0,0,0.75);
-    margin: 20px 0;
+    text-shadow: 0px 1px 1px rgba(0,0,0,0.75);
     color: white;
     cursor: pointer;
-    padding: 8px 25px;
+    padding: 0 16px;
     border: none;
     background: #FF4081;
     background-clip: border-box;
     border-radius: 3px;
     box-sizing: border-box;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.22), 0 1px 4px rgba(0,0,0,0.12);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.22), 0 1px 4px rgba(0,0,0,0.12);
     -webkit-tap-highlight-color: rgba(0,0,0,0);
-    transition: background-color .5s ease;
-    -webkit-transition: background-color .5s ease;
+    transition: all .5s ease;
+    -webkit-transition: all .5s ease;
+    font-size: 15px;
+    line-height: 32px;
 }
-.button.disabled{
+.button:active{
+    box-shadow: 0 3px 10px rgba(0,0,0,0.22), 0 1px 4px rgba(0,0,0,0.12);
+}
+.button:disabled{
+    background-color: rgba(0,0,0,.15) !important;
+    color: rgba(0,0,0,0.3) !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    font-weight: 600 !important;
+}
+.button.large_button:disabled{
     background-color: graytext !important;
+    color: white !important;
+    font-weight: 500 !important;
 }
 .flat_button{
     text-align: center;
     text-transform: uppercase;
-    max-width: 140px;
+    max-width: 110px;
     cursor: pointer;
     margin: 0 auto;
-    padding: 8px 25px;
+    padding: 6px 16px;
     border: none;
     background: none !important;
     background-clip: border-box;
     border-radius: 3px;
     box-sizing: border-box;
-    transition: background .3s ease;
-    -webkit-transition: background .3s ease;
+    transition: all .3s ease;
+    -webkit-transition: all .3s ease;
     color: #03A9F4;
+    font-weight: 500;
 }
 .flat_button:hover{
     background: rgba(0,0,0,.15) !important;
+}
+.floating_button{
+    display: inline-block;
+    text-align: center;
+    color: white;
+    position: relative;
+    height: 48px;
+    width: 48px;
+    line-height: 48px;
+    transition: all .3s ease;
+    -webkit-transition: all .3s ease;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    box-shadow: rgba(0, 0, 0, 0.156863) 0px 3px 10px, rgba(0, 0, 0, 0.227451) 0px 3px 10px;
+    background: #00bcd4;
+    background-clip: border-box;
+}
+.floating_button *{
+    display: inline-block;
+    text-align: center;
+    height: 48px;
+    width: 48px;
+    line-height: 48px !important;
+    margin: 0 auto;
+    font-size: 48px;
+    -webkit-user-select:none;
+}
+.floating_button .button_mask{
+    border-radius: 50%;
+}
+.floating_button:active{
+    box-shadow: rgba(0, 0, 0, 0.188235) 0px 10px 30px, rgba(0, 0, 0, 0.227451) 0px 6px 10px;
+}
+.floating_button:disabled{
+    transition: background .3s ease !important;
+    -webkit-transition: background .3s ease !important;
+    box-shadow: none !important;
+    background: #e0e0e0 !important;
 }
 input[type="text"],input[type="password"]{
     padding: 8px 2px;
@@ -77,7 +153,7 @@ input[type="text"]:focus,input[type="password"]:focus{
 input[type="text"]:disabled,input[type="password"]:disabled{
     border-bottom: 1px rgba(177,175,175,0.80) dotted;
 }
-.can_select_text{
+.can_select_text,input[type="text"]{
     -moz-user-select: text !important;
     -o-user-select: text !important;
     -khtml-user-select: text !important;
@@ -95,6 +171,16 @@ input[type="text"]:disabled,input[type="password"]:disabled{
 }
 :-ms-input-placeholder { /* Internet Explorer 10+ */
     color: #999;
+}
+#gear:before{
+    content: "";
+    width: 72px;
+    height: 72px;
+    position: absolute;
+    background: url('../image/gear.png') no-repeat;
+    top: 53px;
+    right: -38px;
+    animation: rotate 0.6s linear 0s infinite;
 }
 @-webkit-keyframes rotate { from { -webkit-transform: rotate(0deg); } to { -webkit-transform: rotate(360deg); } }
 @-moz-keyframes rotate { from { -moz-transform: rotate(0deg); } to { -moz-transform: rotate(360deg); } }
