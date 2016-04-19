@@ -146,7 +146,6 @@
                         Dialog.makeToast("Undo request has been issued");
                         return;
                     }
-                    var fdisabled = $("#fbtn_undo").prop("disabled");
                     $("#fbtn_undo").prop("disabled",true);
                     Dialog.showDialog("Undo request", args[2].replace(/(\w)/,function(v){return v.toUpperCase();}) + " requests to undo one step",
                             "<button class='flat_button' style='margin-right: 10px;color: #FF4081;' id='btn_deny'>Deny</button>\n\
@@ -155,12 +154,10 @@
                                 $("#btn_accept").click(function(){
                                     Dialog.hideDialog();
                                     socket.send("undo:accept");
-                                    $("#fbtn_undo").prop("disabled",fdisabled);
                                 });
                                 $("#btn_deny").click(function(){
                                     Dialog.hideDialog();
                                     socket.send("undo:deny");
-                                    $("#fbtn_undo").prop("disabled",fdisabled);
                                 });
                             });
                 }else if(args[1] == "accept"){
@@ -230,6 +227,7 @@
             Dialog.showDialog("Error", err);
         },
         onClose: function () {
+            Dialog.hideDialog();
             $("#fbtn_close").fadeIn("slow");
             $("#fbtn_undo").prop("disabled",true);
             window.history.pushState({}, 0, location.href.replace(/\?\w+$/, "?closed"));
