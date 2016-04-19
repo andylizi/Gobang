@@ -72,11 +72,9 @@
             <svg style="fill:#ffffff;color:#ffffff;width:32px;height:48px;" viewBox="0 0 24 24">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path>
             </svg>
-            <span class="button_mask" alt="Close"></span>
         </button>
         <button id="fbtn_undo" class="floating" alt="Undo" disabled>
             <img src="image/undo.png"/>
-            <span class="button_mask" alt="Undo"></span>
         </button>
         <div id="bar">
             <div class="" id="bar_white">

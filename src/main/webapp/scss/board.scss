@@ -181,13 +181,13 @@ table{
         -moz-transform: rotate(45deg);
         -o-transform: rotate(45deg);
         -ms-transform: rotate(45deg);
-        &:hover svg{
-            transform: rotate(-315deg);
-            -webkit-transform: rotate(-315deg);
-            -moz-transform: rotate(-315deg);
-            -o-transform: rotate(-315deg);
-            -ms-transform: rotate(-315deg);
-        }
+    }
+    &:hover svg{
+        transform: rotate(-315deg);
+        -webkit-transform: rotate(-315deg);
+        -moz-transform: rotate(-315deg);
+        -o-transform: rotate(-315deg);
+        -ms-transform: rotate(-315deg);
     }
 }
 #fbtn_undo{
