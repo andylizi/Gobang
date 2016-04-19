@@ -324,7 +324,6 @@ public class Room extends Beans {
         }
 
         private class Player1Handler implements MessageHandler.Whole<String> {
-
             @OnMessage
             @Override
             public void onMessage(String message) {
@@ -393,7 +392,8 @@ public class Room extends Beans {
                                     sendToPlayer2("undo:accept");
                                     broadcast("chat:System:"+(!player1IsWhite ? "White" : "Black")+" undid one step...");
                                     broadcastToSepctators("undo:accept:"+(!player1IsWhite ? "White" : "Black"));
-                                    broadcast("turn:"+(!player1IsWhite ? "WHITE" : "BLACK"));
+                                    turnToBlack = !turnToBlack;
+                                    broadcast("turn:"+(!player1IsWhite ? "WHITE" : "BLACK")+":n");
                                     undoRequest = NONE;
                                     break;
                                 case "deny":
@@ -486,7 +486,8 @@ public class Room extends Beans {
                                     sendToPlayer1("undo:accept");
                                     broadcast("chat:System:"+(player1IsWhite ? "White" : "Black")+" undid one step...");
                                     broadcastToSepctators("undo:accept:"+(player1IsWhite ? "White" : "Black"));
-                                    broadcast("turn:"+(player1IsWhite ? "WHITE" : "BLACK"));
+                                    turnToBlack = !turnToBlack;
+                                    broadcast("turn:"+(player1IsWhite ? "WHITE" : "BLACK")+":n");
                                     undoRequest = NONE;
                                     break;
                                 case "deny":

@@ -27,7 +27,7 @@
         while (msgBuffer.length != 0)
             msgBuffer.pop();
         socket.close();
-        Dialog.hideDialog();
+        Dialog.closeDialog();
         $("#fbtn_close").fadeIn("slow");
     }, function () {
         while (msgBuffer.length != 0)
@@ -53,24 +53,24 @@
                 roomId = args[1];
                 if (create)
                     window.history.pushState({}, 0, location.href.replace(/\?\w+$/, "") + "?" + args[1]);
-                Dialog.showDialog("Waiting for join...", "<p>To invite a player, give the following URL:</p>" +
+                Dialog.openDialog("Waiting for join...", "<p>To invite a player, give the following URL:</p>" +
                         "<a class='can_select_text' href='" + location.href + "' onclick='return false;'>" + location.href + "</a><p>\n\
                 The game will be started once any player joined the game.</p>\n\
                 <p>Room id: <span class='can_select_text' style='color:#009688;'>" + args[1] + "</span></p>",
-                        "<button class='flat_button' style='margin-right: 10px;color: #FF4081;' id='btn_cancel'>Cancel</button>",
-                        function(){
+                        "<button class='flat' id='btn_cancel'>Cancel</button>",
+                        function () {
                             $("#btn_cancel").click(function () {
-                    location.href = "index.jsp";
-                });
+                                location.href = "index.jsp";
+                            });
                         });
                 appendChat("System: Room #" + args[1] + " created");
                 document.title = "Gobang - #" + args[1];
             } else if (args[0] == "start") {
                 if (!create) {
-                    window.history.pushState({}, 0, location.href.replace(/\?\w+$/, "") + "?" + roomId);
+                    document.title = "Gobang - #" + roomId;
                 }
                 appendChat("System: Game started");
-                Dialog.hideDialog();
+                Dialog.closeDialog();
                 started = true;
                 $("#bar_white>.content,#bar_black>.content").html("Ready.");
                 isWhite = args[1] == "white";
@@ -92,10 +92,10 @@
                     $("table").removeClass("turn");
                 }
                 setTurn(turn);
-                $("#bar_white").addClass("bar_turn");
+                $("#bar_white").addClass("bar_highlight");
                 $("#bar_white").removeClass("disable");
                 $("#bar_black").addClass("disable");
-                $("#bar_black").removeClass("bar_turn");
+                $("#bar_black").removeClass("bar_highlight");
                 $("td").click(function () {
                     if (!turn) {
                         return;
@@ -127,69 +127,75 @@
                         $("table").removeClass("turn");
                     }
                     setTurn(turn);
-                    $("#fbtn_undo").prop("disabled",turn);
+                    $("#fbtn_undo").prop("disabled", args[2] || turn);
                 }
                 if (args[1] == "WHITE") {
-                    $("#bar_black").addClass("disable").removeClass("bar_turn").children(".content").html("Waiting...");
-                    $("#bar_white").addClass("bar_turn").removeClass("disable").children(".content").html("Holding...");
+                    $("#bar_black").addClass("disable").removeClass("bar_highlight").children(".content").html("Waiting...");
+                    $("#bar_white").addClass("bar_highlight").removeClass("disable").children(".content").html("Holding...");
                 } else {
-                    $("#bar_white").addClass("disable").removeClass("bar_turn").children(".content").html("Waiting...");
-                    $("#bar_black").addClass("bar_turn").removeClass("disable").children(".content").html("Holding...");
+                    $("#bar_white").addClass("disable").removeClass("bar_highlight").children(".content").html("Waiting...");
+                    $("#bar_black").addClass("bar_highlight").removeClass("disable").children(".content").html("Holding...");
                 }
             } else if (args[0] == "undo") {
                 if (args[1] == "request") {
                     if (spectator) {
-                        Dialog.makeToast(args[2].replace(/(\w)/,function(v){return v.toUpperCase();}) + " requests to undo one step");
+                        Dialog.makeToast(args[2].replace(/(\w)/, function (v) {
+                            return v.toUpperCase();
+                        }) + " requests to undo one step");
                         return;
                     }
                     if ((args[2] == "white" && isWhite) || (args[2] == "black" && !isWhite)) {
                         Dialog.makeToast("Undo request has been issued");
                         return;
                     }
-                    $("#fbtn_undo").prop("disabled",true);
-                    Dialog.showDialog("Undo request", args[2].replace(/(\w)/,function(v){return v.toUpperCase();}) + " requests to undo one step",
-                            "<button class='flat_button' style='margin-right: 10px;color: #FF4081;' id='btn_deny'>Deny</button>\n\
-                        <button class='flat_button' style='margin-right: 10px;' id='btn_accept'>Accept</button>",
+                    $("#fbtn_undo").prop("disabled", true);
+                    Dialog.openDialog("Undo request", args[2].replace(/(\w)/, function (v) {
+                        return v.toUpperCase();
+                    }) + " requests to undo one step",
+                            "<button class='flat text_red' id='btn_deny'>Deny</button>\n\
+                        <button class='flat text_blue' id='btn_accept'>Accept</button>",
                             function () {
-                                $("#btn_accept").click(function(){
-                                    Dialog.hideDialog();
+                                $("#btn_accept").click(function () {
+                                    Dialog.closeDialog();
                                     socket.send("undo:accept");
+                                    $("#fbtn_undo").prop("disabled", true);
                                 });
-                                $("#btn_deny").click(function(){
-                                    Dialog.hideDialog();
+                                $("#btn_deny").click(function () {
+                                    Dialog.closeDialog();
                                     socket.send("undo:deny");
+                                    $("#fbtn_undo").prop("disabled", true);
                                 });
                             });
-                }else if(args[1] == "accept"){
-                    if(spectator){
-                        Dialog.makeToast((args[2] == "White" ? "Black" : "White") + " accepted "+ args[2] +"'s undo requst");
-                    }else{
-                        Dialog.makeToast((isWhite ? "Black":"White") + " accepted your undo requst");
+                } else if (args[1] == "accept") {
+                    if (spectator) {
+                        Dialog.makeToast((args[2] == "White" ? "Black" : "White") + " accepted " + args[2] + "'s undo requst");
+                    } else {
+                        Dialog.makeToast((isWhite ? "Black" : "White") + " accepted your undo requst");
                     }
-                }else if(args[1] == "deny"){
-                    if(spectator){
-                        Dialog.makeToast((args[2] == "White" ? "Black" : "White") + " denied "+ args[2] +"'s undo requst");
-                    }else{
-                        Dialog.makeToast((isWhite ? "Black":"White") + " denied your undo requst");
+                } else if (args[1] == "deny") {
+                    if (spectator) {
+                        Dialog.makeToast((args[2] == "White" ? "Black" : "White") + " denied " + args[2] + "'s undo requst");
+                    } else {
+                        Dialog.makeToast((isWhite ? "Black" : "White") + " denied your undo requst");
                     }
                 }
             } else if (args[0] == "gameover") {
                 appendChat("System: Game over: " + args[1]);
                 if (spectator) {
-                    Dialog.showDialog("Game Over", args[1], "<button class='flat_button' style='margin-right: 10px;' id='btn_ok'>OK</button>");
+                    Dialog.openDialog("Game Over", args[1], "<button class='flat_button' id='btn_ok'>OK</button>");
                     $("#btn_ok").click(function () {
-                        Dialog.hideDialog();
+                        Dialog.closeDialog();
                     });
                 } else {
                     var canRestart = (args[1].indexOf("win") != -1);
-                    Dialog.showDialog("Game Over", args[1], "\
-                <button class='flat_button' style='margin-right: 10px;display: inline;color: #FF4081;' id='btn_close'>Close</button>\n\
-                <button class='flat_button' style='margin-right: 10px;display: inline;color: #FF4081;' id='btn_back'>Back</button>" + (canRestart ?
-                            "<button class='flat_button' style='margin-right: 10px;display: inline;' id='btn_restart'>Restart</button>" : ""),
+                    Dialog.openDialog("Game Over", args[1],
+                            "<button class='flat" + (canRestart ? " text_red" : "") + "' style='display: inline;' id='btn_close'>Close</button>\n\
+                    <button class='flat" + (canRestart ? " text_red" : " text_blue") + "' style='display: inline;' id='btn_back'>Back</button>" + (canRestart ?
+                            "<button class='flat text_blue' style='display: inline;' id='btn_restart'>Restart</button>" : ""),
                             function () {
                                 $("#btn_restart").click(function () {
                                     appendChat("System: Game restarted...");
-                                    Dialog.hideDialog();
+                                    Dialog.closeDialog();
                                 });
                             });
                 }
@@ -201,7 +207,7 @@
                 if (buffer(evt))
                     return;
                 $(".chessiece").remove();
-                $("#fbtn_undo").prop("disabled",true);
+                $("#fbtn_undo").prop("disabled", true);
             } else if (args[0] == "closesocket") {
                 socket.close();
                 appendChat("System: Connection closed");
@@ -223,13 +229,17 @@
                 alert("Unknown message: \r\n" + evt.data);
             }
         },
-        onError: function () {
-            Dialog.showDialog("Error", err);
+        onError: function (err) {
+            Dialog.openDialog("Error", err);
         },
         onClose: function () {
-            Dialog.hideDialog();
+            if (!Dialog.isOpen()) {
+                Dialog.openDialog("Socket Closed", "The connection to the server has been disconnected.",
+                        "<button class='flat' style='margin-right: 10px;display: inline;' id='btn_close'>Close</button>\n\
+                <button class='flat text_red' style='margin-right: 10px;display: inline;' id='btn_back'>Back</button>");
+            }
             $("#fbtn_close").fadeIn("slow");
-            $("#fbtn_undo").prop("disabled",true);
+            $("#fbtn_undo").prop("disabled", true);
             window.history.pushState({}, 0, location.href.replace(/\?\w+$/, "?closed"));
             $("#bar_black,#bar_white").addClass("disable");
             if (started) {
@@ -241,7 +251,7 @@
         }
     };
     function buffer(evt) {
-        if (Dialog.isOpened()) {
+        if (Dialog.isOpen()) {
             msgBuffer.push(evt);
             console.log("Buffer: " + evt.data);
             return true;
@@ -255,10 +265,10 @@
         if (c == 0) { //EMPTY
             e.empty();
         } else if (c == 1) {  //BLACK
-            $("#fbtn_undo").prop("disabled",isWhite);
+            $("#fbtn_undo").prop("disabled", isWhite);
             e.html("<span class='chessiece black'>&nbsp;</span>").children("span").addClass("last");
         } else if (c == 2) {  //WHITE
-            $("#fbtn_undo").prop("disabled",!isWhite);
+            $("#fbtn_undo").prop("disabled", !isWhite);
             e.html("<span class='chessiece white'>&nbsp;</span>").children("span").addClass("last");
         }
     }
@@ -308,7 +318,7 @@
                 return;
             }
             socket.send("undo:request");
-            $(this).prop("disabled",true);
+            $(this).prop("disabled", true);
         });
     });
 })(window.jQuery);

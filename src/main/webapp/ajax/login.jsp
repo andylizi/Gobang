@@ -14,7 +14,7 @@
             username = "Anonymous";
         }
 %>
-<span id="username"><%=username%></span>&nbsp;&nbsp;<a id="btn_login">[<%=(username.equals("Anonymous") ? "Login" : "Logout")%>]</a>
+<span id="username"><%=username%></span>&nbsp;&nbsp;<a id="btn_login">[<%=(username.equals("Anonymous") ? "Sign in" : "Sign out")%>]</a>
 <%
         return;
     } else if ("login".equalsIgnoreCase(action)) {
@@ -29,9 +29,9 @@
     <br/>
     <input type="password" id="l_password" name="password" placeholder="Password" style="margin-bottom: 20px;" size="28" maxlength="24"/>
     <br/>
-    <button id="l_btn_login" class="button large_button" disabled style="background: #323a45;margin: 0 auto;margin-bottom: 5px;display: block;width: 254px;padding: 4px 0;">Login</button>
+    <button id="l_btn_login" class="bluegrey" disabled style="margin: 0 auto;margin-bottom: 5px;display: block;width: 254px;padding: 4px 0;">Sign in</button>
 </form>
-<div id="l_btn_register" class="flat_button" style="color: #00BCD4;margin-top: 10px;">Register</div>
+<button id="l_btn_register" class="flat text_blue non-uppercase" style="text-transform: none;margin-top: 10px;">Sign up</button>
 <script reload="1">
     $("#actions").slideUp("slow");
     $("#l_username,#l_password").keyup(function (e) {
@@ -43,7 +43,7 @@
         }
         if (e.keyCode == 13)
             $("#l_btn_login").click();
-    }).on("click", function () {
+    }).on("focus", function () {
         if (this.value.length == 32) {
             this.value = "";
         }
@@ -67,11 +67,10 @@
             }
             return;
         }
-        $("#l_btn_login").html("Loading...")[0].disabled = true;
+        $("#l_btn_login").html("Signing in...")[0].disabled = true;
         if ($("#l_password").val().length != 32)
             $("#l_password").val($.md5($("#l_password").val()));
         $.post("ajax/login.jsp", $("#login_form").serializeArray(), function (data) {
-            $("#l_btn_login").html("Login");
             $("#l_password").keyup();
             data = data.trim();
             if (data == "un_notfound") {
@@ -86,9 +85,11 @@
                 $("#username_arena").load("ajax/login.jsp", {action: "info"}, function () {
                     $("#btn_login").one("click", login);
                 });
+                return;
             } else {
-                alert(data);
+                alert("Unknown response: "+data);
             }
+            $("#l_btn_login").html("Sign in");
         });
     });
 </script>

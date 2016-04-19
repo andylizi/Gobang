@@ -19,9 +19,9 @@
     <input type="password" id="r_password" name="password" placeholder="Password" size="28" autocomplete="off" maxlength="24"/>
     <br/>
     <input type="text" id="r_vcode" name="vcode" placeholder="Validate Code" size="13"  style="margin: 10px 0;" autocomplete="off" maxlength="4"/><img src="validatecode.sl" id="vcode" style="cursor:pointer;" onclick="this.src='validatecode.sl?'+Math.random();"/>
-    <button id="r_btn_register" class="button large_button" disabled style="background: #323a45;margin: 0 auto;margin-bottom: 5px;display: block;width: 254px;padding: 4px 0;">Register</button>
+    <button id="r_btn_register" class="bluegrey" disabled style="margin: 0 auto;margin-bottom: 5px;display: block;width: 254px;padding: 4px 0;">Sign up</button>
 </form>
-<span id="r_btn_login" class="flat_button" style="color: #00BCD4;margin-top: 10px;">Login</span>
+<button id="r_btn_login" class="flat text_blue non-uppercase" style="margin-top: 10px;">Sign in</button>
 <script reload="1">
     $("#r_username,#r_password,#r_vcode").keyup(function (e) {
         if ($("#r_username").val() && $("#r_password").val() && $("#r_vcode").val().length == 4)
@@ -59,11 +59,10 @@
             }
             return;
         }
-        $("#r_btn_register").html("Loading...")[0].disabled = true;
+        $("#r_btn_register").html("Signing up...")[0].disabled = true;
         if ($("#r_password").val().length != 32)
             $("#r_password").val($.md5($("#r_password").val()));
         $.post("ajax/register.jsp", $("#register_form").serializeArray(), function (data) {
-            $("#r_btn_register").html("Register");
             $("#r_password").keyup();
             data = data.trim();
             if (data == "exists") {
@@ -82,9 +81,11 @@
                 $("#username_arena").load("ajax/login.jsp", {action: "info"}, function () {
                     $("#btn_login").one("click", login);
                 });
+                return;
             } else {
-                alert(data);
+                alert("Unknown response: "+data);
             }
+            $("#r_btn_register").html("Sign up");
         });
     });
 </script>

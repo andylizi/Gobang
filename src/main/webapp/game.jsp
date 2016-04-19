@@ -29,9 +29,6 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="shortcut icon" href="image/favicon.ico" type="image/x-icon" />
-        <link href="style/normalize.css" rel="stylesheet" type="text/css">
-        <link href="style/common.css" rel="stylesheet" type="text/css">
-        <link href="style/messages.css" rel="stylesheet" type="text/css">
         <link href="style/board.css" rel="stylesheet" type="text/css">
         <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js" onerror="document.write('<script src=js/lib/jquery.js>&lt;/script&gt;');"></script>
         <script src="js/lib/class.js"></script>
@@ -71,13 +68,13 @@
                 </tr>
             </tbody>
         </table>
-        <button id="fbtn_close" class="floating_button" style="display: none;" alt="Close">
-            <svg style="fill:#ffffff;color:#ffffff;width:32px;" viewBox="0 0 24 24">
+        <button id="fbtn_close" class="floating" style="display: none;" alt="Close">
+            <svg style="fill:#ffffff;color:#ffffff;width:32px;height:48px;" viewBox="0 0 24 24">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path>
             </svg>
             <span class="button_mask" alt="Close"></span>
         </button>
-        <button id="fbtn_undo" class="floating_button" alt="Undo" disabled>
+        <button id="fbtn_undo" class="floating" alt="Undo" disabled>
             <img src="image/undo.png"/>
             <span class="button_mask" alt="Undo"></span>
         </button>

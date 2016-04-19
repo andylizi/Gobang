@@ -1,0 +1,209 @@
+/*
+Copyright (C) 2016 andylizi
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+@charset "utf-8";
+@import "normalize.css";
+/* @import "../webfont/roboto-webfont.css"; */
+@mixin prefix($key, $value){
+    -webkit-#{$key}: $value;
+    -khtml-#{$key}: $value;
+    -moz-#{$key}: $value;
+    -ms-#{$key}: $value;
+    -o-#{$key}: $value;
+    #{$key}: $value;
+}
+@mixin transition($value){
+    @include prefix("transition", $value);
+}
+@mixin border-radius($value){
+    @include prefix("border-radius", $value);
+}
+@mixin button($color,$uppercase:false){
+    @if $uppercase { text-transform: uppercase; }
+    text-align: center;
+    color: white;
+    cursor: pointer;
+    padding: 0 16px;
+    border: none;
+    background: $color;
+    border-radius: 3px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.22), 0 1px 4px rgba(0,0,0,0.12);
+    @include transition(all .3s ease);
+    font-size: 15px;
+    line-height: 32px;
+    &:active{
+        box-shadow: 0 3px 10px rgba(0,0,0,0.22), 0 1px 4px rgba(0,0,0,0.12);
+    }
+    &:disabled{
+        background-color: rgba(0,0,0,.15) !important;
+        color: rgba(0,0,0,0.3) !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+    &:after{
+        content: '';
+        display: inline-block;
+        z-index: 100;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 3px;
+        @include transition(all .3s ease);
+    }
+    &:enabled:hover:after{
+        background: rgba(255,255,255,.35);
+    }
+}
+
+.can_select_text{
+    @include prefix("user-select", text !important);
+}
+*{
+    @include prefix("user-select", none);
+    font: 16px/1.5 'Microsoft Yahei', 'Tahoma'; 
+    /* font: 16px/1.5 'Roboto', 'sans-serif', 'Tahoma'; */
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    box-sizing: border-box;
+    background-clip: border-box;
+    color: #333;
+}
+button{
+    outline: none;
+    position: relative;
+}
+button:not(.flat):not(.floating){
+    @include button(#2196F3);
+}
+button.blue { background: #2196F3; }
+button.red { background: #F44336; }
+button.purple { background: #9C27B0; }
+button.pink { background: #E91E63; }
+button.teal { background: #009688; }
+button.cyan { background: #00BCD4; }
+button.green { background: #4CAF50; }
+button.orange { background: #FF9800; }
+button.bluegrey { 
+    background: #323A45; 
+    &:disabled{
+        background-color: graytext !important;
+        color: white !important;
+        font-weight: 500 !important;
+    }
+}
+button.flat{
+    text-align: center;
+    text-transform: uppercase;
+    max-width: 110px;
+    cursor: pointer;
+    margin: 0 auto;
+    padding: 6px 16px;
+    border: none;
+    background: none !important;
+    border-radius: 3px;
+    @include transition(all .3s ease);
+    color: rgba(0, 0, 0, 0.870588);
+    font-weight: 500;
+    &:hover{
+        background: rgba(0,0,0,.15) !important;
+    }
+    .text_red{
+        color: #FF4081;
+    }
+    .text_blue{
+        color: #00BCD4;
+    }
+    .non-uppercase{
+        text-transform: none;
+    }
+}
+button.floating{
+    display: inline-block;
+    text-align: center;
+    color: white;
+    position: relative;
+    height: 48px;
+    width: 48px;
+    line-height: 48px;
+    @include transition(all .3s ease);
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    box-shadow: rgba(0, 0, 0, 0.156863) 0px 3px 10px, rgba(0, 0, 0, 0.227451) 0px 3px 10px;
+    background: #00bcd4;
+    &:not(.button_mask){
+        display: inline-block;
+        text-align: center;
+        height: 48px;
+        width: 48px;
+        line-height: 48px !important;
+        margin: 0 auto;
+        font-size: 48px;
+        -webkit-user-select:none;
+    }
+    &:active{
+        box-shadow: rgba(0, 0, 0, 0.188235) 0px 10px 30px, rgba(0, 0, 0, 0.227451) 0px 6px 10px;
+    }
+    &:disabled{
+        @include transition(all .3s ease);
+        box-shadow: none !important;
+        background: #e0e0e0 !important;
+    }
+    &:after:enabled:hover{
+        background: rgba(255,255,255,0.4);
+    }
+    .button_mask{
+        border-radius: 50%;
+    }
+}
+input[type="text"], input[type="password"]{
+    padding: 8px 2px;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    border: none;
+    border-bottom: 1px rgba(177,175,175,0.50) solid;
+    outline: none;
+    background: transparent;
+    @include transition(border-bottom-color .5s ease);
+    &:focus{
+        border-bottom-color: #00BCD4;
+    }
+    &:disabled{
+        border-bottom: 1px rgba(177,175,175,0.80) dotted;
+    }
+    @extend .can_select_text;
+}
+::-webkit-input-placeholder { color: #999; } /* WebKit browsers */
+:-moz-placeholder { color: #999; } /* Mozilla Firefox 4 to 18 */
+::-moz-placeholder { color: #999; } /* Mozilla Firefox 19+ */
+:-ms-input-placeholder { color: #999; } /* Internet Explorer 10+ */
+#gear:before{
+    content: "";
+    width: 72px;
+    height: 72px;
+    position: absolute;
+    background: url('../image/gear.png') no-repeat;
+    top: 53px;
+    right: -38px;
+    animation: rotate 0.6s linear 0s infinite;
+    -webkit-animation: rotate 0.6s linear 0s infinite;
+    -moz-animation: rotate 0.6s linear 0s infinite;
+}
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@-webkit-keyframes rotate { from { -webkit-transform: rotate(0deg); } to { -webkit-transform: rotate(360deg); } }
+@-moz-keyframes rotate { from { -moz-transform: rotate(0deg); } to { -moz-transform: rotate(360deg); } }
+@-ms-keyframes rotate { from { -ms-transform: rotate(0deg); } to { -ms-transform: rotate(360deg); } }
+@-o-keyframes rotate { from { -o-transform: rotate(0deg); } to { -o-transform: rotate(360deg); } }

@@ -16,31 +16,52 @@
  */
 window.Dialog = Class.extend({
     init: function (close_callback, back_callback, buffer_pop_callback) {
-        $(function(){
-            $("body").append('<div id="mask" style="display:none;"><div id="msgbox" style="margin-top:0px;opacity: 0;"><div id="msgbox_title"></div><div id="msgbox_content"></div><div id="msgbox_actions"></div></div></div>');
+        $(function () {
+            if ($("#mask").length <= 0) {
+                $(document.body).append('<div id="mask" style="display:none;"></div>');
+            }
+            if ($("#mask #dialog").length <= 0) {
+                $("#mask").append('<div id="dialog" style="margin-top:0px;opacity: 0;"><div id="dialog_title"></div><div id="dialog_content"></div><div id="dialog_actions"></div></div>');
+            }
         });
         this.dialogQueue = new Array();
         this.toastQueue = new Array();
-        this.dialogOpened = false;
+        this.dialogOpene = false;
         this.close_callback = close_callback;
         this.back_callback = back_callback;
         this.buffer_pop_callback = buffer_pop_callback;
+        String.prototype.calculateWidth = function (fontSize) {
+            var e = $("<span id='__tmp" + parseInt(Math.random() * 1000) + "__'></span>")
+                    .css({
+                        visibility: "hidden",
+                        whiteSpace: "nowarp",
+                        padding: "0"
+                    }).text(this);
+            if (fontSize)
+                e.css("font-size", fontSize);
+            try{
+                $(document.body).append(e);
+                var width = e[0].offsetWidth;
+            }catch(e){}
+            e.remove();
+            return width;
+        };
     },
-    showDialog: function (title, content, actions, callback) {
-        if (this.dialogOpened) {
+    openDialog: function (title, content, actions, callback) {
+        if (this.dialogOpene) {
             console.log("Buffer: dialog - " + title);
             this.dialogQueue.push({title: title, content: content, actions: actions, callback: callback});
             return;
         }
         console.log("Open dialog - " + title);
-        this.dialogOpened = true;
-        $("#msgbox_title").html(title);
-        $("#msgbox_content").html(content);
-        if(actions){
-            $("#msgbox_actions").html(actions);
+        this.dialogOpene = true;
+        $("#dialog_title").html(title);
+        $("#dialog_content").html(content);
+        if (actions) {
+            $("#dialog_actions").html(actions);
         }
         $("#mask").hide().fadeIn("fast");
-        $("#msgbox").show().animate({
+        $("#dialog").show().animate({
             "margin-top": "120px",
             "opacity": 1
         }, "fast", function () {
@@ -55,15 +76,15 @@ window.Dialog = Class.extend({
             $("#btn_back").click(this.back_callback);
         }
     },
-    hideDialog: function (callback) {
+    closeDialog: function (callback) {
         console.log("Hide dialog");
-        this.dialogOpened = false;
+        this.dialogOpene = false;
         if (this.buffer_pop_callback) {
             this.buffer_pop_callback();
         }
         $("#mask").fadeOut("fast");
         var self = this;
-        $("#msgbox").show().animate({
+        $("#dialog").show().animate({
             "margin-top": "0px",
             "opacity": 0
         }, "fast", "swing", function () {
@@ -73,32 +94,32 @@ window.Dialog = Class.extend({
             }
             if (self.dialogQueue.length != 0) {
                 var task = self.dialogQueue.shift();
-                self.showDialog(task.title, task.content, task.actions, task.callback);
+                self.openDialog(task.title, task.content, task.actions, task.callback);
                 return;
             }
         });
     },
-    makeToast: function(content,time,e){
-        if($(".toast").length > 0){
-            if(!e){
-                this.toastQueue.push({content: content,time: time,e: e});
+    makeToast: function (content, time, e) {
+        if ($(".toast").length > 0) {
+            if (!e) {
+                this.toastQueue.push({content: content, time: time, e: e});
                 return false;
             }
             $(".toast").remove();
         }
         var self = this;
-        var toast = $('<div class="toast">'+content+'</div>');
-        toast.appendTo($("body"));
-        setTimeout(function(){
+        var toast = $('<div class="toast">' + content + '</div>');
+        toast.appendTo($(document.body)).css("width",(content.calculateWidth()+64)+"px");
+        setTimeout(function () {
             toast.remove();
-            if(self.toastQueue.length > 0){
+            if (self.toastQueue.length > 0) {
                 var task = self.toastQueue.shift();
-                self.makeToast(task.content,task.time,task.e);
+                self.makeToast(task.content, task.time, task.e);
             }
-        },!time ? 3000 : time);
+        }, !time ? 5000 : time);
         return toast;
     },
-    isOpened: function () {
-        return this.dialogOpened;
+    isOpen: function () {
+        return this.dialogOpene;
     }
 });
