@@ -42,31 +42,31 @@
     </head>
     <body>
         <span id="gear"></span>
-        <table id="board" style="display:table;">
+        <table id="board" style="display:none;">
             <tbody>
                 <tr class="border-top" id="row_0">
                     <td class="border-left" id="row_0_0"><span class="put"></span></td>
-                        <% for (int col = 1; col < 14; col++) {%>
+                        <% for (int col = 1; col < 14; col++) { %>
                     <td id="row_0_<%=col%>"><span class="put"></span></td>
                         <% } %>
                     <td class="border-right" id="row_0_14"><span class="put"></span></td>
                 </tr>
 
-                <% for (int row = 1; row < 14; row++) {%>
+                <% for (int row = 1; row < 14; row++) { %>
                 <tr id="row_<%=row%>">
                     <td class="border-left" id="row_<%=row%>_0"><span class="put"></span></td>
-                        <% for (int col = 1; col < 14; col++) {%>
+                        <% for (int col = 1; col < 14; col++) { %>
                     <td id="row_<%=row%>_<%=col%>"><span class="put"></span></td>
-                        <% }%>
+                        <% } %>
                     <td class="border-right" id="row_<%=row%>_14"><span class="put"></span></td>
                 </tr>
                 <% } %>
 
                 <tr class="border-bottom" id="row_14">
                     <td class="border-left" id="row_14_0"><span class="put"></span></td>
-                        <% for (int col = 1; col < 14; col++) {%>
+                        <% for (int col = 1; col < 14; col++) { %>
                     <td id="row_14_<%=col%>"><span class="put"></span></td>
-                        <% }%>
+                        <% } %>
                     <td class="border-right" id="row_14_14"><span class="put"></span></td>
                 </tr>
             </tbody>
