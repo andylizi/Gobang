@@ -11,7 +11,7 @@
         <link href="style/index.css" rel="stylesheet" type="text/css">
         <!--<script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js" onerror="document.write('<script src=js/lib/jquery.js>&lt;/script&gt;');"></script>-->
         <script src="js/lib/jquery.js"></script>
-        <script src="js/lib/hclass.js"></script>
+        <script src="js/lib/class.js"></script>
         <script src="js/socket.js"></script>
         <script src="js/index.js"></script>
     </head>

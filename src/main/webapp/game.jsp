@@ -34,7 +34,7 @@
         <link href="style/messages.css" rel="stylesheet" type="text/css">
         <link href="style/board.css" rel="stylesheet" type="text/css">
         <script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js" onerror="document.write('<script src=js/lib/jquery.js>&lt;/script&gt;');"></script>
-        <script src="js/lib/hclass.js"></script>
+        <script src="js/lib/class.js"></script>
         <script src="js/lib/dialog.js"></script>
         <script src="js/socket.js"></script>
         <script>var create = <%=create%>;var roomId = "<%=(roomId == null ? "null" : roomId)%>";var username = "<%=username%>";</script>
