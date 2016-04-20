@@ -288,14 +288,7 @@
         return div.innerHTML;
     }
     $(function () {
-        $("#board").fadeIn("slow", function () {
-            $("#gear").css("right", "-38px").click(function () {
-                $(this).animate({
-                    opacity: "0",
-                    right: "-60px"
-                }, "slow");
-            });
-        });
+        $("#board").fadeIn("slow");
         appendChat("System: Connecting to server...");
         var socketurl = location.href.replace(/^\w+:/, "ws:").replace("game.jsp", "socket").replace("?create", "");
         if (!socket) {

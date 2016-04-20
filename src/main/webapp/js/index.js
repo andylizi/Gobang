@@ -50,6 +50,7 @@
         }
     }
     function showJoin() {
+        if($("#btn_back:visible").length > 0) return;
         location.hash = "#join";
         $("#btn_create").animate({
             "margin-right": "10px"
@@ -59,14 +60,14 @@
             location.hash = "";
             $(this).fadeOut("normal", function () {
                 setTimeout(function () {
-                    $("#btn_join")[0].disabled = false;
+                    $("#btn_join").prop("disabled",false);
                     setTimeout(function () {
                         $("#btn_create").css("visibility", "visible").fadeIn("slow");
                     }, 200);
                     $("#txt_join").animate({
                         width: "0px"
                     }, "slow").fadeOut("fast", "swing", function () {
-                        $(this).css("display", "inline").css("visibility", "hidden");
+                        $(this).css("display", "inline").css("visibility", "hidden")[0].focus();
                         $("#btn_join").one("click", showJoin).animate({
                             marginLeft: "20px"
                         }, "fast", "swing", function () {
@@ -76,8 +77,7 @@
                 }, 100);
             });
         });
-        if (!$("#txt_join").val())
-            $("#btn_join")[0].disabled = true;
+        $("#btn_join").prop("disabled",!$("#txt_join").val());
         setTimeout(function () {
             $("#txt_join").animate({
                 width: "150px"
@@ -157,18 +157,21 @@
                                     Watchers: " + v.watchers + "&nbsp;&nbsp;&nbsp;&nbsp;<a href='game.jsp?" + id + "'>[" + (v.playing ? "Watch" : "Join") + "]</a></li>");
             });
             $(".id").click(function () {
-                showJoin();
                 $("#txt_join").val(this.innerHTML);
+                showJoin();
             });
             list.parent(":hidden").slideDown("slow");
         }, function () {}, function () {
             initStatusSocket(++connectCount);
         });
     }
-    
+
     $(function () {
         $.get("ajax/init.html");
         $("#title").css("background-image", "url('image/bgs/" + parseInt(Math.random() * 6) + ".svg')");
+        if ($("#main").width() < 890) {
+            $("#gear").hide();
+        }
         $("#main").css({
             display: "none",
             visibility: "visible"

@@ -25,7 +25,7 @@
 <script src="js/lib/jquery.md5.js"></script>
 <form id="login_form" action="login.jsp" method="POST">
     <input type="hidden" name="action" value="login"/>
-    <input type="text" autofocus id="l_username" name="username" placeholder="Username" size="28" autocomplete="off" maxlength="24"/>
+    <input type="text" autofocus id="l_username" name="username" placeholder="Username" size="28" autocomplete="off" maxlength="9"/>
     <br/>
     <input type="password" id="l_password" name="password" placeholder="Password" style="margin-bottom: 20px;" size="28" maxlength="24"/>
     <br/>

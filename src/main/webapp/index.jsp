@@ -4,7 +4,7 @@
     <head>
         <title>Gobang</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=yes">
         <link rel="shortcut icon" href="image/favicon.ico" type="image/x-icon" />
         <link href="style/index.css" rel="stylesheet" type="text/css">
         <!--<script src="http://libs.baidu.com/jquery/2.0.3/jquery.min.js" onerror="document.write('<script src=js/lib/jquery.js>&lt;/script&gt;');"></script>-->

@@ -53,6 +53,10 @@ public class UserManager {
         if (!file.exists()) {
             return "un_notfound";
         }
+        if(name.length() > 9 || name.length() < 3){
+            file.delete();
+            return "un_notfound";
+        }
         try {
             try (DataInputStream in = new DataInputStream(new GZIPInputStream(new FileInputStream(file)))) {
                 if (password.equals(in.readUTF())) {
@@ -75,7 +79,7 @@ public class UserManager {
         } else if (password == null) {
             return "need_password";
         }
-        if (!name.matches("[\\u4e00-\\u9fa5A-za-z0-9]+")) {
+        if (!name.matches("[\\u4e00-\\u9fa5A-za-z0-9]{3,9}")) {
             return "invalid_un";
         }
         if (name.equalsIgnoreCase("Anonymous")) {

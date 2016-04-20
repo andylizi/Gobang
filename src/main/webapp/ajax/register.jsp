@@ -14,7 +14,7 @@
 <script src="js/lib/jquery.md5.js"></script>
 <form id="register_form" action="register.jsp" method="POST" style="text-align: left;width: 254px; margin: 0 auto;">
     <input type="hidden" name="action" value="register"/>
-    <input type="text" id="r_username" name="username" placeholder="Username" size="28" autofocus autocomplete="off" maxlength="24"/>
+    <input type="text" id="r_username" name="username" placeholder="Username" size="28" autofocus autocomplete="off" maxlength="9"/>
     <br/>
     <input type="password" id="r_password" name="password" placeholder="Password" size="28" autocomplete="off" maxlength="24"/>
     <br/>
@@ -69,7 +69,7 @@
                 vibrate($("#r_username"));
             }else if(data == "invalid_un" ){
                 vibrate($("#r_username"));
-                alert("Username must match [\\u4e00-\\u9fa5A-za-z0-9]+");
+                alert("Username must match [\\u4e00-\\u9fa5A-za-z0-9]{3,9}");
             } else if(data == "vcode_wrong"){
                 vibrate($("#r_vcode"),function(){
                     $("#vcode")[0].onclick();
