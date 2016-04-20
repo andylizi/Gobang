@@ -14,7 +14,7 @@
             username = "Anonymous";
         }
 %>
-<span id="username"><%=username%></span>&nbsp;&nbsp;<a id="btn_login">[<%=(username.equals("Anonymous") ? "Sign in" : "Sign out")%>]</a>
+<span id="username"><%=username%></span>&nbsp;&nbsp;<a id="btn_login">[<%=(username.equals("Anonymous") ? "Sign in" : "Sign out")%>]</a><script>$("#btn_login").one("click", login);</script>
 <%
         return;
     } else if ("login".equalsIgnoreCase(action)) {
@@ -25,9 +25,9 @@
 <script src="js/lib/jquery.md5.js"></script>
 <form id="login_form" action="login.jsp" method="POST">
     <input type="hidden" name="action" value="login"/>
-    <input type="text" autofocus id="l_username" name="username" placeholder="Username" size="28" autocomplete="off" maxlength="9"/>
+    <input type="text" autofocus id="l_username" name="username" placeholder="Username" style="width: 250px;" autocomplete="off" maxlength="9"/>
     <br/>
-    <input type="password" id="l_password" name="password" placeholder="Password" style="margin-bottom: 20px;" size="28" maxlength="24"/>
+    <input type="password" id="l_password" name="password" placeholder="Password" style="width: 250px;margin-bottom: 20px;" size="28" maxlength="24"/>
     <br/>
     <button id="l_btn_login" class="bluegrey" disabled style="margin: 0 auto;margin-bottom: 5px;display: block;width: 254px;padding: 4px 0;">Sign in</button>
 </form>

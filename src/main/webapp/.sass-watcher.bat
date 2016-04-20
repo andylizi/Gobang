@@ -1,0 +1,1 @@
+@sass --style compressed -E utf-8 --unix-newlines --cache-location %tmp% --watch scss:style

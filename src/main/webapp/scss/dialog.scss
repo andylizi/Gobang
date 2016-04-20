@@ -14,6 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+@charset "utf-8";
 #mask{
     position: fixed;
     z-index: 255;
@@ -22,8 +23,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     min-width: 100%;
     min-height: 100%;
     background: rgba(0,0,0,0.5);
+    transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1);
+    -webkit-transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1);
     /**************Dialog**************/
     #dialog{
+        transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1);
+        -webkit-transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1);
         color: black;
         background: white;
         border-radius: 2px;
@@ -57,7 +62,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     text-align: center;
     color: white;
     background: #455a64;
-    border: 2px rgba(38,50,56,0.3) solid;
+    /* border: 2px rgba(38,50,56,0.3) solid; */
     border-radius: 10px;
     z-index: 99999;
     padding: 8px 16px;

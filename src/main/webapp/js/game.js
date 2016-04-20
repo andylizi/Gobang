@@ -14,6 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+var socket = new Socket();
+var Dialog = new window.Dialog();
 (function ($) {
     new Image().src = "image/white.png";
     new Image().src = "image/black.png";
@@ -21,27 +23,31 @@
     var started = false;
     var spectator = false;
     var turn = false;
-    var socket = new Socket();
     var msgBuffer = new Array();
-    var Dialog = new window.Dialog(function () {
-        while (msgBuffer.length != 0)
-            msgBuffer.pop();
-        socket.close();
-        Dialog.closeDialog();
-        $("#fbtn_close").fadeIn("slow");
-    }, function () {
-        while (msgBuffer.length != 0)
-            msgBuffer.pop();
-        socket.close();
-        location.href = "index.jsp";
-    }, function () {
-        while (msgBuffer.length != 0) {
-            var e = msgBuffer.shift();
-            listener.onMessage(e);
-            console.log("Pop message: " + e.data);
+    var listener;
+    var callbacks = {
+        buffer_pop: function () {
+            while (msgBuffer.length != 0) {
+                var e = msgBuffer.shift();
+                listener.onMessage(e);
+                console.log("Pop message: " + e.data);
+            }
+        },
+        btn_back: function () {
+            while (msgBuffer.length != 0)
+                msgBuffer.pop();
+            socket.close();
+            location.href = "index.jsp";
+        },
+        btn_close: function () {
+            while (msgBuffer.length != 0)
+                msgBuffer.pop();
+            socket.close();
+            Dialog.closeDialog(this.buffer_pop);
+            $("#fbtn_close").fadeIn("slow");
         }
-    });
-    var listener = {
+    };
+    listener = {
         onConnected: function () {
             console.log("Connected");
             $("#bar_white .content").html("Ready.");
@@ -70,7 +76,7 @@
                     document.title = "Gobang - #" + roomId;
                 }
                 appendChat("System: Game started");
-                Dialog.closeDialog();
+                Dialog.closeDialog(callbacks.buffer_pop);
                 started = true;
                 $("#bar_white>.content,#bar_black>.content").html("Ready.");
                 isWhite = args[1] == "white";
@@ -156,12 +162,12 @@
                         <button class='flat text_blue' id='btn_accept'>Accept</button>",
                             function () {
                                 $("#btn_accept").click(function () {
-                                    Dialog.closeDialog();
+                                    Dialog.closeDialog(callbacks.buffer_pop);
                                     socket.send("undo:accept");
                                     $("#fbtn_undo").prop("disabled", true);
                                 });
                                 $("#btn_deny").click(function () {
-                                    Dialog.closeDialog();
+                                    Dialog.closeDialog(callbacks.buffer_pop);
                                     socket.send("undo:deny");
                                     $("#fbtn_undo").prop("disabled", true);
                                 });
@@ -184,10 +190,17 @@
                 if (spectator) {
                     Dialog.openDialog("Game Over", args[1], "<button class='flat_button' id='btn_ok'>OK</button>");
                     $("#btn_ok").click(function () {
-                        Dialog.closeDialog();
+                        Dialog.closeDialog(callbacks.buffer_pop);
                     });
                 } else {
                     var canRestart = (args[1].indexOf("win") != -1);
+                    if(!canRestart){
+                        $("#btn_restart").fadeOut("fast",function(){
+                            $(this).remove();
+                        });
+                        $("#btn_close").removeClass("text_red");
+                        $("#btn_back").removeClass("text_red").addClass("text_blue");
+                    }
                     Dialog.openDialog("Game Over", args[1],
                             "<button class='flat" + (canRestart ? " text_red" : "") + "' style='display: inline;' id='btn_close'>Close</button>\n\
                     <button class='flat" + (canRestart ? " text_red" : " text_blue") + "' style='display: inline;' id='btn_back'>Back</button>" + (canRestart ?
@@ -195,9 +208,9 @@
                             function () {
                                 $("#btn_restart").click(function () {
                                     appendChat("System: Game restarted...");
-                                    Dialog.closeDialog();
+                                    Dialog.closeDialog(callbacks.buffer_pop);
                                 });
-                            });
+                            },canRestart);
                 }
                 $("table").removeClass("turn");
                 $("#bar_white>.content").html("Game Over");
@@ -238,8 +251,13 @@
                         "<button class='flat' style='margin-right: 10px;display: inline;' id='btn_close'>Close</button>\n\
                 <button class='flat text_red' style='margin-right: 10px;display: inline;' id='btn_back'>Back</button>");
             }
-            $("#fbtn_close").fadeIn("slow");
-            $("#fbtn_undo").prop("disabled", true);
+            var oldShadow = $("#fbtn_undo").css("box-shadow");
+            $("#fbtn_undo").css("box-shadow","").fadeOut("slow",function(){
+                $(this).css("box-shadow",oldShadow);
+            });
+            $("#fbtn_close").css("box-shadow","").fadeIn("slow",function(){
+                $(this).css("box-shadow",oldShadow);
+            });
             window.history.pushState({}, 0, location.href.replace(/\?\w+$/, "?closed"));
             $("#bar_black,#bar_white").addClass("disable");
             if (started) {
@@ -250,6 +268,8 @@
             setTurn(false);
         }
     };
+    Dialog.onCloseButton(callbacks.btn_close);
+    Dialog.onBackButton(callbacks.btn_back);
     function buffer(evt) {
         if (Dialog.isOpen()) {
             msgBuffer.push(evt);

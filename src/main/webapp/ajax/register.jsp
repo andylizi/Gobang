@@ -14,9 +14,9 @@
 <script src="js/lib/jquery.md5.js"></script>
 <form id="register_form" action="register.jsp" method="POST" style="text-align: left;width: 254px; margin: 0 auto;">
     <input type="hidden" name="action" value="register"/>
-    <input type="text" id="r_username" name="username" placeholder="Username" size="28" autofocus autocomplete="off" maxlength="9"/>
+    <input type="text" id="r_username" name="username" placeholder="Username" style="width: 250px;" autofocus autocomplete="off" maxlength="9"/>
     <br/>
-    <input type="password" id="r_password" name="password" placeholder="Password" size="28" autocomplete="off" maxlength="24"/>
+    <input type="password" id="r_password" name="password" placeholder="Password" style="width: 250px;" autocomplete="off" maxlength="24"/>
     <br/>
     <input type="text" id="r_vcode" name="vcode" placeholder="Validate Code" size="13"  style="margin: 10px 0;" autocomplete="off" maxlength="4"/><img src="validatecode.sl" id="vcode" style="cursor:pointer;" onclick="this.src='validatecode.sl?'+Math.random();"/>
     <button id="r_btn_register" class="bluegrey" disabled style="margin: 0 auto;margin-bottom: 5px;display: block;width: 254px;padding: 4px 0;">Sign up</button>

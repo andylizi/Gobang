@@ -14,6 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+@charset "utf-8";
 @import "common";
 @import "dialog";
 body{
@@ -46,12 +47,12 @@ table{
                 height: 35px;
                 left: 7px;
                 top: 7px;
-                @include border-radius(32px);
+                border-radius: 32px;
                 -moz-box-shadow: 0.5px 0.5px 1px 0px #424242 ;
                 -webkit-box-shadow: 0.5px 0.5px 1px 0px #424242 ;
                 box-shadow: 0.5px 0.5px 1px 0px #424242 ;
-                transition: opacity .5s ease;
-                -webkit-transition: opacity .5s ease;
+                transition: opacity .5s cubic-bezier(0.23, 1, 0.32, 1);
+                -webkit-transition: opacity .5s cubic-bezier(0.23, 1, 0.32, 1);
             }
             .chessiece.black{
                 background-image: url('../image/black.png');
@@ -108,7 +109,7 @@ table{
     #bar_white,#bar_black{
         height: 50%;
         border: 1px transparent solid;
-        @include border-radius(3px);
+        border-radius: 3px;
         background: transparent;
         padding: 10px 20px;
         margin-bottom: 20px;
@@ -177,7 +178,7 @@ table{
     bottom: 150px;
     left: 1160px;
     svg{
-        @include transition(all 1s ease);
+        @include transition(all 1s cubic-bezier(0.35, -0.12, 0.27, 1));
         transform: rotate(45deg);
         -webkit-transform: rotate(45deg);
         -moz-transform: rotate(45deg);
@@ -191,16 +192,23 @@ table{
         -o-transform: rotate(-315deg);
         -ms-transform: rotate(-315deg);
     }
+    &:disabled svg{
+        transform: none;
+        -webkit-transform: none;
+        -moz-transform: none;
+        -o-transform: none;
+        -ms-transform: none;
+    }
 }
 #fbtn_undo{
     position: absolute;
-    bottom: 60px;
+    bottom: 150px;
     left: 1160px;
     img{
         width: 18px;
         height: 18px;
         margin: 15px 15px;
-        @include transition(all .8s ease);
+        @include transition(all 1s cubic-bezier(0.35, -0.12, 0.27, 1));
     }
     &:hover img{
         transform: rotate(-360deg);
@@ -208,5 +216,12 @@ table{
         -moz-transform: rotate(-360deg);
         -o-transform: rotate(-360deg);
         -ms-transform: rotate(-360deg);
+    }
+    &:disabled img{
+        transform: none;
+        -webkit-transform: none;
+        -moz-transform: none;
+        -o-transform: none;
+        -ms-transform: none;
     }
 }

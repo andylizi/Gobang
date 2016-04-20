@@ -14,43 +14,43 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-(function () {
-    function login() {
-        var finished = false;
-        if ($("#username").html() == "Anonymous") {
-            setTimeout(function () {
-                if (!finished) {
-                    $("#btn_login").html("Loading...");
-                }
-            }, 200);
-            if ($("#login_form"))
-                $("#login").load("ajax/login.jsp", {}, show);
-            else
-                show();
-            function show() {
-                finished = true;
-                $("#btn_login").html("[Cancel]").one("click", function () {
-                    $("#login").slideUp("slow");
-                    $("#btn_login").html("[Login]").one("click", login);
-                    $("#actions").slideDown("slow");
-                });
-                $("#login").slideDown("slow");
+function login() {
+    var finished = false;
+    if ($("#username").html() == "Anonymous") {
+        setTimeout(function () {
+            if (!finished) {
+                $("#btn_login").html("Loading...");
             }
-        } else {
-            setTimeout(function () {
-                if (!finished) {
-                    $("#btn_login").html("Loading...");
-                }
-            }, 200);
-            $("#username_arena").load("ajax/login.jsp", {action: "loginout"}, function () {
-                finished = true;
+        }, 200);
+        if ($("#login_form"))
+            $("#login").load("ajax/login.jsp", {}, show);
+        else
+            show();
+        function show() {
+            finished = true;
+            $("#btn_login").html("[Cancel]").one("click", function () {
                 $("#login").slideUp("slow");
-                $("#btn_login").one("click", login);
+                $("#btn_login").html("[Sign in]").one("click", login);
+                $("#actions").slideDown("slow");
             });
+            $("#login").slideDown("slow");
         }
+    } else {
+        setTimeout(function () {
+            if (!finished) {
+                $("#btn_login").html("Loading...");
+            }
+        }, 200);
+        $("#username_arena").load("ajax/login.jsp", {action: "loginout"}, function () {
+            finished = true;
+            $("#login").slideUp("slow");
+        });
     }
+}
+(function () {
     function showJoin() {
-        if($("#btn_back:visible").length > 0) return;
+        if ($("#btn_back:visible").length > 0)
+            return;
         location.hash = "#join";
         $("#btn_create").animate({
             "margin-right": "10px"
@@ -60,7 +60,7 @@
             location.hash = "";
             $(this).fadeOut("normal", function () {
                 setTimeout(function () {
-                    $("#btn_join").prop("disabled",false);
+                    $("#btn_join").prop("disabled", false);
                     setTimeout(function () {
                         $("#btn_create").css("visibility", "visible").fadeIn("slow");
                     }, 200);
@@ -77,7 +77,7 @@
                 }, 100);
             });
         });
-        $("#btn_join").prop("disabled",!$("#txt_join").val());
+        $("#btn_join").prop("disabled", !$("#txt_join").val());
         setTimeout(function () {
             $("#txt_join").animate({
                 width: "150px"
@@ -186,9 +186,7 @@
             $("#btn_list .icon").toggleClass("turn_off").toggleClass("turn_on");
         });
         $("#btn_join").one("click", showJoin);
-        $("#username_arena").load("ajax/login.jsp", {action: "info"}, function () {
-            $("#btn_login").one("click", login);
-        });
+        $("#username_arena").load("ajax/login.jsp", {action: "info"});
         if (location.hash == "#join") {
             showJoin();
         }

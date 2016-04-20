@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 @charset "utf-8";
 @import "normalize.css";
-/* @import "../webfont/roboto-webfont.css"; */
+@import "../webfont/roboto-webfont-local.css";
 @mixin prefix($key, $value){
     -webkit-#{$key}: $value;
     -khtml-#{$key}: $value;
@@ -28,17 +28,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 @mixin transition($value){
     @include prefix("transition", $value);
 }
-@mixin border-radius($value){
-    @include prefix("border-radius", $value);
-}
 
 .can_select_text{
     @include prefix("user-select", text !important);
 }
 *{
     @include prefix("user-select", none);
-    font: 16px/1.5 'Microsoft Yahei', 'Tahoma'; 
-    /* font: 16px/1.5 'Roboto', 'sans-serif', 'Tahoma'; */
+    /* font: 16px/1.5 'Microsoft Yahei', 'Tahoma'; */
+    font: 16px/1.5 'Roboto', 'Microsoft Yahei', 'Tahoma', 'sans-serif';
     -webkit-tap-highlight-color: rgba(0,0,0,0);
     box-sizing: border-box;
     background-clip: border-box;
@@ -47,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 button{
     outline: none;
     position: relative;
+    font-weight: 500;
     &:not(.flat){
         &:not(.floating){
             text-align: center;
@@ -55,7 +53,7 @@ button{
             padding: 0 16px;
             border: none;
             border-radius: 3px;
-            @include transition(all .3s ease);
+            @include transition(all .3s cubic-bezier(0.23, 1, 0.32, 1));
             box-shadow: 0 1px 6px rgba(0,0,0,0.22), 0 1px 4px rgba(0,0,0,0.12);
             font-size: 15px;
             line-height: 32px;
@@ -73,7 +71,7 @@ button{
             width: 100% !important;
             height: 100% !important;
             border-radius: 3px;
-            @include transition(all .3s ease);
+            @include transition(all .5s cubic-bezier(0.23, 1, 0.32, 1));
         }
         &:enabled:hover:after{
             background: rgba(255,255,255,.35);
@@ -91,7 +89,6 @@ button{
             &:disabled{
                 background-color: graytext !important;
                 color: white !important;
-                font-weight: 500 !important;
             }
         }
     }
@@ -109,7 +106,7 @@ button{
         height: 48px;
         width: 48px;
         line-height: 48px;
-        @include transition(all .3s ease);
+        @include transition(all .3s cubic-bezier(0.23, 1, 0.32, 1));
         padding: 0;
         border: none;
         border-radius: 50%;
@@ -129,12 +126,14 @@ button{
             box-shadow: rgba(0, 0, 0, 0.188235) 0px 10px 30px, rgba(0, 0, 0, 0.227451) 0px 6px 10px;
         }
         &:disabled{
-            @include transition(all .3s ease);
             box-shadow: none !important;
             background: #e0e0e0 !important;
         }
-        &:after:enabled:hover{
-            background: rgba(255,255,255,0.4);
+        &:after{
+            border-radius: 50%;
+            &:enabled:hover{
+                background: rgba(255,255,255,0.4);
+            }
         }
         .button_mask{
             border-radius: 50%;
@@ -150,9 +149,8 @@ button{
         border: none;
         background: none !important;
         border-radius: 3px;
-        @include transition(all .3s ease);
+        @include transition(all 450ms cubic-bezier(0.23, 1, 0.32, 1));
         color: rgba(0, 0, 0, 0.870588);
-        font-weight: 500;
         &:hover{
             background: rgba(0,0,0,.15) !important;
         }
@@ -174,7 +172,7 @@ input[type="text"], input[type="password"]{
     border-bottom: 1px rgba(177,175,175,0.50) solid;
     outline: none;
     background: transparent;
-    @include transition(border-bottom-color .5s ease);
+    @include transition(border-bottom-color .5s cubic-bezier(0.23, 1, 0.32, 1));
     &:focus{
         border-bottom-color: #00BCD4;
     }
