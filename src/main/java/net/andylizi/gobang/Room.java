@@ -572,7 +572,8 @@ public class Room extends Beans {
                 @Override
                 public void onResult(SendResult result) {
                     try {
-                        player1.close(NORMAL_CLOSE);
+                        if (checkOpen(player1))
+                            player1.close(NORMAL_CLOSE);
                     } catch (IOException ex) {
                     }
                 }
@@ -583,7 +584,8 @@ public class Room extends Beans {
                 @Override
                 public void onResult(SendResult result) {
                     try {
-                        player2.close(NORMAL_CLOSE);
+                        if (checkOpen(player2))
+                            player2.close(NORMAL_CLOSE);
                     } catch (IOException ex) {
                     }
                 }
