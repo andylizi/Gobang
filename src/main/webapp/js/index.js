@@ -143,7 +143,16 @@ function login() {
             connectCount = 1;
         }
         var list = $("#list ul");
-        socket.connect(location.href.replace(/#\w*$/, "").replace(/^\w+:/, "ws:").replace(/\/index.jsp|\/$/, "/status"), function () {}, function (evt) {
+        var loc = window.location;
+        var socketuri = "ws://";
+        if(loc.protocol == "https:") {
+            socketuri = "wss://";
+        }
+        socketuri += loc.host;
+        var path = loc.pathname.substr(0,(loc.pathname.lastIndexOf("/")));
+        socketuri += path;
+        socketuri += "/status";
+        socket.connect(socketuri, function () {}, function (evt) {
             list.empty();
             if (evt.data == "{}") {
                 list.parent(":visible").slideUp("slow");
